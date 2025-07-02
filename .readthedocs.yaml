@@ -6,7 +6,9 @@ build:
     python: "mambaforge-4.10"
   jobs:
     install:
+      - conda activate latest
       - which python
+      - conda env list
       - echo $CONDA_PREFIX
       - export KALDI_ROOT=$CONDA_PREFIX
       - pip install .
