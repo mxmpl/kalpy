@@ -5,9 +5,10 @@ build:
   tools:
     python: "mambaforge-4.10"
   jobs:
-    pre_install:
+    install:
       - echo $CONDA_PREFIX
       - export KALDI_ROOT=$CONDA_PREFIX
+      - pip install .
 
 sphinx:
   builder: html
@@ -19,9 +20,3 @@ formats:
 
 conda:
   environment: rtd_environment.yml
-
-# This part is necessary otherwise the project is not built
-python:
-   install:
-      - method: pip
-        path: .
