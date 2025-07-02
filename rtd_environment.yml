@@ -17,3 +17,6 @@ dependencies:
   - mock
   - setuptools-scm
   - kaldi =*=cpu*
+  - cmake
+  - pybind11
+  - ninja
