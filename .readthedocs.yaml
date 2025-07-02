@@ -8,7 +8,7 @@ build:
     install:
       - which python
       - echo $READTHEDOCS_VERSION_TYPE
-      - KALDI_ROOT=/home/docs/checkouts/readthedocs.org/user_builds/kalpy/conda/$READTHEDOCS_VERSION_TYPE pip install .
+      - KALDI_ROOT=/home/docs/checkouts/readthedocs.org/user_builds/kalpy/conda/$READTHEDOCS_VERSION pip install .
 
 sphinx:
   builder: html
