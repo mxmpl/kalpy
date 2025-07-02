@@ -6,11 +6,9 @@ build:
     python: "mambaforge-4.10"
   jobs:
     install:
-      - source activate latest
+      - KALDI_ROOT=/home/docs/checkouts/readthedocs.org/user_builds/kalpy/conda/$READTHEDOCS_VERSION_TYPE
       - which python
-      - conda env list
-      - echo $CONDA_PREFIX
-      - export KALDI_ROOT=$CONDA_PREFIX
+      - echo $KALDI_ROOT
       - pip install .
 
 sphinx:
