@@ -6,7 +6,7 @@ build:
     python: "mambaforge-4.10"
   jobs:
     install:
-      - KALDI_ROOT=/home/docs/checkouts/readthedocs.org/user_builds/kalpy/conda/$READTHEDOCS_VERSION_TYPE
+      - export KALDI_ROOT=/home/docs/checkouts/readthedocs.org/user_builds/kalpy/conda/$READTHEDOCS_VERSION_TYPE
       - which python
       - echo $KALDI_ROOT
       - pip install .
