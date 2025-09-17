@@ -1,0 +1,1 @@
+global-exclude *.alimdl *.mdl *.wav *.flac *.mat tree *.txt *.ipynb .github*

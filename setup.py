@@ -140,7 +140,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     ext_modules=[CMakeExtension("_kalpy")],
-    packages=find_packages(exclude=["scripts", "tests"]),
+    packages=find_packages(exclude=["scripts", "tests", ".github"]),
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     extras_require={"test": ["pytest>=6.0"]},
