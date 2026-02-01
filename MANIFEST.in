@@ -1,1 +1,1 @@
-global-exclude *.wav *.flac *.ipynb *.TextGrid .github*
+global-exclude *.wav *.flac *.ipynb *.TextGrid .github* tests* docs*
