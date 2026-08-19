@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import logging
-import pathlib
+import os
 import typing
 from contextlib import contextmanager
 
 from _kalpy.util import Input, Output
 
 
-def generate_read_specifier(file_name: typing.Union[str, pathlib.Path], sorted=True) -> str:
+def generate_read_specifier(file_name: os.PathLike, sorted=True) -> str:
     file_name = str(file_name)
     if sorted:
         read_identifier = "ark,s,cs"
@@ -23,7 +23,7 @@ def generate_read_specifier(file_name: typing.Union[str, pathlib.Path], sorted=T
 
 
 def generate_write_specifier(
-    file_name: typing.Union[str, pathlib.Path], write_scp: bool = False, text: bool = False
+    file_name: os.PathLike, write_scp: bool = False, text: bool = False
 ) -> str:
     file_name = str(file_name)
     if not file_name.endswith(".ark"):
@@ -52,7 +52,7 @@ def read_kaldi_object(obj_type, path, binary=True):
 
 
 @contextmanager
-def kalpy_logger(log_name: str, log_path: typing.Union[pathlib.Path, str]) -> logging.Logger:
+def kalpy_logger(log_name: str, log_path: os.PathLike) -> typing.Generator[logging.Logger]:
     kalpy_logging = logging.getLogger(log_name)
     file_handler = logging.FileHandler(log_path, encoding="utf8")
     file_handler.setLevel(logging.DEBUG)

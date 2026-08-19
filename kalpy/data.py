@@ -1,7 +1,7 @@
 """Data classes for kalpy"""
 from __future__ import annotations
 
-import os.path
+import os
 import pathlib
 import typing
 from dataclasses import dataclass
@@ -18,8 +18,6 @@ from _kalpy.util import (
 )
 from kalpy.utils import generate_read_specifier
 
-PathLike = typing.Union[str, pathlib.Path]
-
 
 @dataclass
 class Segment:
@@ -27,7 +25,7 @@ class Segment:
     Data class for information about acoustic segments
     """
 
-    file_path: PathLike
+    file_path: os.PathLike
     begin: typing.Optional[float] = 0.0
     end: typing.Optional[float] = None
     channel: typing.Optional[int] = 0
@@ -102,7 +100,7 @@ class KaldiMapping(dict):
         self.list_mapping = list_mapping
         super().__init__(*args, **kwargs)
 
-    def export(self, file_path: typing.Union[str, pathlib.Path], skip_safe: bool = False) -> None:
+    def export(self, file_path: os.PathLike, skip_safe: bool = False) -> None:
         with open(file_path, "w", encoding="utf8") as f:
             for k in sorted(self.keys()):
                 v = self[k]
@@ -140,7 +138,7 @@ class MatrixArchive:
         Path to archive or SCP file to read from
     """
 
-    def __init__(self, file_name: typing.Union[pathlib.Path, str], double: bool = False):
+    def __init__(self, file_name: os.PathLike, double: bool = False):
         if not os.path.exists(file_name):
             raise OSError(f"Specified file does not exist: {file_name}")
         self.file_name = str(file_name)
