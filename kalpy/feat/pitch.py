@@ -5,12 +5,12 @@ import os
 import pathlib
 import typing
 
-import librosa
 import numpy as np
 
 from _kalpy import feat
 from _kalpy.matrix import CompressedMatrix, FloatMatrixBase
 from _kalpy.util import BaseFloatMatrixWriter, CompressedMatrixWriter
+from kalpy._vendor import librosa
 from kalpy.data import Segment
 from kalpy.utils import generate_write_specifier
 

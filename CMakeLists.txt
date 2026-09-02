@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+if(NOT KALDI_ROOT AND DEFINED ENV{KALDI_ROOT})
+    set(KALDI_ROOT "$ENV{KALDI_ROOT}")
+endif()
 if(KALDI_ROOT)
     message(STATUS "Adding KALDI_ROOT directories: ${KALDI_ROOT}")
     set(CMAKE_INCLUDE_PATH "${KALDI_ROOT}/include")
@@ -39,6 +42,10 @@ if (MSVC)
  else()
      set(CMAKE_INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib;$ORIGIN/../../tools/openfst/lib")
 endif ()
+
+if(KALDI_ROOT AND NOT MSVC)
+    list(APPEND CMAKE_INSTALL_RPATH "${KALDI_ROOT}/lib")
+endif()
 
 find_package(CUDAToolkit)
 
@@ -105,3 +112,5 @@ set_target_properties(_kalpy PROPERTIES
                 "KALDI_CUMATRIX_DLL_IMPORTS"
                 "KALDI_UTIL_DLL_IMPORTS")
 endif(MSVC)
+
+install(TARGETS _kalpy LIBRARY DESTINATION . RUNTIME DESTINATION .)
