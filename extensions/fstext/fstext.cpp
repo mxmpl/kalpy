@@ -1617,8 +1617,57 @@ void pybind_fstext_remove_eps_local(py::module &m) {
 void pybind_fst_symbol_table(py::module& m) {
   using PyClass = fst::SymbolTable;
 
+  // Mirrors the subset of pywrapfst.SymbolTable that kalpy uses, so that symbol
+  // tables can cross the pynini boundary by serialization instead of by pointer
+  // (see the note on VectorFst.from_pynini).
   py::class_<PyClass>(m, "SymbolTable")
-      .def(py::init<>());
+      .def(py::init<>())
+      .def(py::init([](const std::string& name) {
+             return new PyClass(name);
+      }), py::arg("name"))
+      .def("available_key", &PyClass::AvailableKey)
+      .def("add_symbol", [](PyClass& t, const std::string& symbol, int64 key) {
+             return t.AddSymbol(symbol, key);
+      }, py::arg("symbol"), py::arg("key"))
+      .def("add_symbol", [](PyClass& t, const std::string& symbol) {
+             return t.AddSymbol(symbol);
+      }, py::arg("symbol"))
+      .def("find", [](const PyClass& t, const std::string& symbol) {
+             return t.Find(symbol);
+      }, py::arg("symbol"))
+      .def("find", [](const PyClass& t, int64 key) {
+             return t.Find(key);
+      }, py::arg("key"))
+      .def("member", [](const PyClass& t, const std::string& symbol) {
+             return t.Member(symbol);
+      }, py::arg("symbol"))
+      .def("member", [](const PyClass& t, int64 key) {
+             return t.Member(key);
+      }, py::arg("key"))
+      .def("num_symbols", &PyClass::NumSymbols)
+      .def("name", &PyClass::Name)
+      .def_static("read_text", [](const std::string& filename) {
+             PyClass *t = PyClass::ReadText(filename);
+             if (t == nullptr)
+               KALDI_ERR << "Reading symbol table: error reading " << filename;
+             return t;
+      }, py::arg("filename"), py::return_value_policy::take_ownership)
+      .def("write_text", [](const PyClass& t, const std::string& filename) {
+             return t.WriteText(filename);
+      }, py::arg("filename"))
+      .def_static("read_from_string", [](const std::string& bytes) {
+             std::istringstream str(bytes);
+             PyClass *t = PyClass::Read(str, "<unspecified>");
+             if (t == nullptr)
+               KALDI_ERR << "Reading symbol table: error reading from string";
+             return t;
+      }, py::arg("bytes"), py::return_value_policy::take_ownership)
+      .def("write_to_string", [](const PyClass& t) {
+             std::ostringstream os;
+             t.Write(os);
+             return py::bytes(os.str());
+      })
+      .def("__len__", &PyClass::NumSymbols);
 }
 
 void init_fstext(py::module &_m) {
@@ -1705,7 +1754,7 @@ void init_fstext(py::module &_m) {
     pybind_fstext_prune_special(m);
     pybind_fstext_rand_fst(m);
     pybind_fstext_remove_eps_local(m);
-    //pybind_fst_symbol_table(m);
+    pybind_fst_symbol_table(m);
 
   pybind_table_writer<fst::VectorFstHolder>(m, "VectorFstWriter");
   pybind_sequential_table_reader<fst::VectorFstHolder>(m, "SequentialVectorFstReader");
@@ -1734,32 +1783,6 @@ void init_fstext(py::module &_m) {
         py::arg("self_loop_scale") = 1.0,
         py::arg("reorder") = true);
 
-    m.def("fst_add_self_loops",
-    [](
-      py::object fst,
-      const TransitionModel &trans_model,
-      std::vector<int32> disambig_syms_in,
-    BaseFloat self_loop_scale = 1.0,
-    bool reorder = true
-    ){
-      py::gil_scoped_release gil_release;
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-
-    bool check_no_self_loops = true;
-    AddSelfLoops(trans_model,
-                 disambig_syms_in,
-                 self_loop_scale,
-                 reorder, check_no_self_loops, &vf);
-    },
-        py::arg("fst"),
-        py::arg("trans_model"),
-        py::arg("disambig_syms_in"),
-        py::arg("self_loop_scale") = 1.0,
-        py::arg("reorder") = true);
-
     m.def("fst_add_subsequential_loop",
     [](
       VectorFst<StdArc> *fst,
@@ -1773,28 +1796,6 @@ void init_fstext(py::module &_m) {
       std::cerr << "fst_add_subsequential_loop: subseq symbol does not seem right, "<<subseq_sym<<" <= "<<h<<'\n';
     }
     AddSubsequentialLoop(subseq_sym, fst);
-    },
-        py::arg("fst"),
-        py::arg("subseq_sym"),
-        py::arg("delta") = kDelta);
-
-    m.def("fst_add_subsequential_loop",
-    [](
-      py::object fst,
-      int32 subseq_sym,
-      float delta = kDelta
-    ){
-
-      py::gil_scoped_release gil_release;
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-      int32 h = HighestNumberedInputSymbol(vf);
-    if (subseq_sym <= h) {
-      std::cerr << "fst_add_subsequential_loop: subseq symbol does not seem right, "<<subseq_sym<<" <= "<<h<<'\n';
-    }
-    AddSubsequentialLoop(subseq_sym, &vf);
     },
         py::arg("fst"),
         py::arg("subseq_sym"),
@@ -1874,35 +1875,6 @@ void init_fstext(py::module &_m) {
         py::arg("max_states") = -1,
         py::arg("use_log") = false);
 
-    m.def("fst_determinize_star",
-    [](
-      py::object fst,
-      float delta = kDelta,
-      int max_states = -1,
-      bool use_log = false
-    ){
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-      py::gil_scoped_release gil_release;
-      bool debug_location = false;
-
-      ArcSort(&vf, ILabelCompare<StdArc>());  // improves speed.
-      if (use_log) {
-        DeterminizeStarInLog(&vf, delta, &debug_location, max_states);
-            return vf;
-      } else {
-      VectorFst<StdArc> det_fst;
-        DeterminizeStar(vf, &det_fst, delta, &debug_location, max_states);
-            return det_fst;
-      }
-    },
-        py::arg("fst"),
-        py::arg("delta") = kDelta,
-        py::arg("max_states") = -1,
-        py::arg("use_log") = false);
-
     m.def("fst_is_stochastic",
     [](
       Fst<StdArc> *fst,
@@ -1913,27 +1885,6 @@ void init_fstext(py::module &_m) {
     StdArc::Weight min, max;
     if (test_in_log)  ans = IsStochasticFstInLog(*fst, delta, &min, &max);
     else ans = IsStochasticFst(*fst, delta, &min, &max);
-    return py::make_tuple(ans, min, max);
-
-    },
-        py::arg("fst"),
-        py::arg("delta") = 0.01,
-        py::arg("test_in_log") = true);
-
-    m.def("fst_is_stochastic",
-    [](
-      py::object fst,
-    float delta = 0.01,
-    bool test_in_log = true
-    ){
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-    bool ans;
-    StdArc::Weight min, max;
-    if (test_in_log)  ans = IsStochasticFstInLog(vf, delta, &min, &max);
-    else ans = IsStochasticFst(vf, delta, &min, &max);
     return py::make_tuple(ans, min, max);
 
     },
@@ -1975,22 +1926,6 @@ void init_fstext(py::module &_m) {
         py::arg("fst"),
         py::arg("delta") = kDelta);
 
-    m.def("fst_minimize_encoded",
-    [](
-      py::object fst,
-        float delta = kDelta
-    ){
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-      py::gil_scoped_release gil_release;
-
-    MinimizeEncoded(&vf, delta);
-    },
-        py::arg("fst"),
-        py::arg("delta") = kDelta);
-
     m.def("fst_phi_compose",
     [](
       VectorFst<StdArc> *fst1,
@@ -2019,22 +1954,6 @@ void init_fstext(py::module &_m) {
       py::gil_scoped_release gil_release;
 
       PushSpecial(fst, delta);
-      },
-        py::arg("fst"),
-        py::arg("delta") = kDelta);
-
-    m.def("fst_push_special",
-      [](
-            py::object fst,
-            BaseFloat delta = kDelta
-      ){
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-            VectorFst<StdArc> vf(*mf);
-      py::gil_scoped_release gil_release;
-
-      PushSpecial(&vf, delta);
       },
         py::arg("fst"),
         py::arg("delta") = kDelta);

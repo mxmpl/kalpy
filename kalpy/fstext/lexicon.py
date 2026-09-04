@@ -9,13 +9,13 @@ import re
 import typing
 from dataclasses import dataclass
 
-import pynini
-import pywrapfst
-
 from _kalpy.fstext import VectorFst
 from _kalpy.lat import WordAlignLatticeLexiconInfo
 from kalpy.exceptions import LexiconError, PhonesToPronunciationsError
+from kalpy.fstext._pynini import require_pynini
 from kalpy.gmm.data import CtmInterval, HierarchicalCtm, WordCtmInterval
+
+pynini, pywrapfst = require_pynini("kalpy.fstext.lexicon")
 
 G2PCompiler = None
 

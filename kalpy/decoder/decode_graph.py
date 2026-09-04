@@ -5,11 +5,10 @@ import pathlib
 import re
 import typing
 
-import pywrapfst
-
 from _kalpy.decoder import TrainingGraphCompilerOptions
 from _kalpy.fstext import (
     ConstFst,
+    SymbolTable,
     VectorFst,
     fst_add_self_loops,
     fst_arc_sort,
@@ -25,8 +24,11 @@ from _kalpy.hmm import TransitionModel, make_h_transducer
 from _kalpy.lm import ArpaParseOptions, BuildConstArpaLm, ConstArpaLm, arpa_to_fst
 from _kalpy.tree import ContextDependency
 from _kalpy.util import ReadKaldiObject
+from kalpy.fstext._pynini import require_pynini
 from kalpy.fstext.lexicon import LexiconCompiler
 from kalpy.fstext.utils import kaldi_to_pynini, pynini_to_kaldi, pynini_to_kaldi_const
+
+pynini, pywrapfst = require_pynini("kalpy.decoder.decode_graph")
 
 logger = logging.getLogger("kalpy.decode_graph")
 logger.write = lambda msg: logger.info(msg) if msg != "\n" else None
@@ -163,7 +165,12 @@ class DecodeGraphCompiler:
             G.fst
         """
         if self.g_fst is None:
-            self.g_fst = arpa_to_fst(str(arpa_path), self.lexicon_compiler.word_table)
+            word_table = self.lexicon_compiler.word_table
+            symbols = SymbolTable.read_from_string(word_table.write_to_string())
+            self.g_fst = arpa_to_fst(str(arpa_path), symbols)
+            for symbol in ("<s>", "</s>"):
+                if not word_table.member(symbol):
+                    word_table.add_symbol(symbol, symbols.find(symbol))
 
         return self.g_fst
 

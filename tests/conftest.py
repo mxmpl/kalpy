@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 import subprocess
 from io import BytesIO
 
@@ -7,6 +8,34 @@ import pytest
 import soundfile
 
 from kalpy._vendor import librosa
+
+KALDI_CLI_TOOLS = (
+    "ali-to-post",
+    "apply-cmvn",
+    "compose-transforms",
+    "compute-cmvn-stats",
+    "compute-mfcc-feats",
+    "gmm-align-compiled",
+    "gmm-est-fmllr",
+    "gmm-est-fmllr-gpost",
+    "gmm-post-to-gpost",
+    "splice-feats",
+    "transform-feats",
+    "weight-silence-post",
+)
+
+
+@pytest.fixture(scope="session")
+def kaldi_cli():
+    missing = [x for x in KALDI_CLI_TOOLS if shutil.which(x) is None]
+    if missing:
+        names = ", ".join(missing[:3])
+        if len(missing) > 3:
+            names += f" and {len(missing) - 3} others"
+        pytest.skip(
+            f"Kaldi's command line tools are not on PATH ({names}); install the "
+            "conda-forge kaldi package to run the tests that compare against them"
+        )
 
 
 @pytest.fixture(scope="session")
@@ -54,7 +83,7 @@ def reference_dir(test_dir):
 
 
 @pytest.fixture(scope="session")
-def reference_mfcc_path(wav_path, reference_dir):
+def reference_mfcc_path(kaldi_cli, wav_path, reference_dir):
     ark_path = reference_dir.joinpath("mfccs.ark")
     scp_path = reference_dir.joinpath("mfccs.scp")
 
@@ -101,7 +130,7 @@ def reference_mfcc_path(wav_path, reference_dir):
 
 
 @pytest.fixture(scope="session")
-def reference_cmvn_path(wav_path, reference_dir, reference_mfcc_path):
+def reference_cmvn_path(kaldi_cli, wav_path, reference_dir, reference_mfcc_path):
     ark_path = reference_dir.joinpath("cmvn.ark")
     scp_path = reference_dir.joinpath("cmvn.scp")
     spk2utt = reference_dir.joinpath("spk2utt.scp")
@@ -121,7 +150,7 @@ def reference_cmvn_path(wav_path, reference_dir, reference_mfcc_path):
 
 @pytest.fixture(scope="session")
 def reference_final_features_path(
-    wav_path, reference_dir, reference_mfcc_path, reference_cmvn_path
+    kaldi_cli, wav_path, reference_dir, reference_mfcc_path, reference_cmvn_path
 ):
     ark_path = reference_dir.joinpath("final_features.ark")
     scp_path = reference_dir.joinpath("final_features.scp")
@@ -162,6 +191,7 @@ def reference_sat_feature_string(
 
 @pytest.fixture(scope="session")
 def reference_first_pass_ali_path(
+    kaldi_cli,
     wav_path,
     reference_dir,
     sat_align_model_path,
@@ -192,6 +222,7 @@ def reference_first_pass_ali_path(
 
 @pytest.fixture(scope="session")
 def reference_second_pass_ali_path(
+    kaldi_cli,
     wav_path,
     reference_dir,
     sat_model_path,
@@ -238,6 +269,7 @@ def fmllr_options():
 
 @pytest.fixture(scope="session")
 def reference_trans_path(
+    kaldi_cli,
     wav_path,
     reference_dir,
     reference_final_features_path,
@@ -302,6 +334,7 @@ def reference_trans_path(
 
 @pytest.fixture(scope="session")
 def reference_trans_compose_path(
+    kaldi_cli,
     wav_path,
     reference_dir,
     reference_final_features_path,

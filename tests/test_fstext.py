@@ -1,3 +1,10 @@
+import pytest
+
+pytest.importorskip(
+    "pynini",
+    reason="pynini is an optional dependency and has no wheels outside Linux x86_64",
+)
+
 import pynini
 import pywrapfst
 

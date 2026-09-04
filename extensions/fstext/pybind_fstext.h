@@ -17,7 +17,6 @@
 #include "fstext/lattice-utils.h"
 #include "fstext/lattice-utils-inl.h"
 #include <fst/extensions/far/far-class.h>
-#include "_pywrapfst.h"
 
 using namespace fst;
 
@@ -900,22 +899,25 @@ void pybind_vector_fst_impl(py::module& m, const std::string& class_name,
       .def("Connect", [](PyClass* f){
              fst::Connect<Arc>(f);
       })
-       /*.def("to_pynini", [](PyClass& f){
-
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-
-        VectorFstObject py_fst;
-        fst::script::MutableFstClass vf(f);
-        py_fst.__pyx_base._mfst = std::shared_ptr<fst::script::MutableFstClass>(&vf);
-        return py_fst;
-      }, py::return_value_policy::take_ownership)*/
+      // Conversions from pynini go through OpenFst's serialization format rather
+      // than through pywrapfst's C++ objects. _kalpy and _pywrapfst link against
+      // different copies of OpenFst (the wheels vendor libfst, and a conda pynini
+      // brings its own), so sharing MutableFstClass pointers between them is
+      // undefined behaviour. Any object with a write_to_string() works here.
       .def_static("from_pynini", [](py::object fst) {
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-        auto mf = ptr->__pyx_base._mfst->GetMutableFst<A>();
-            PyClass *vf = new PyClass(*mf);
-            return vf;
+            std::string bytes = fst.attr("write_to_string")().cast<std::string>();
+            std::istringstream str(bytes);
+
+            fst::FstHeader hdr;
+            if (!hdr.Read(str, "<unspecified>"))
+            KALDI_ERR << "Reading FST: error reading FST header";
+            fst::FstReadOptions ropts("<unspecified>", &hdr);
+            PyClass *f = PyClass::Read(str, ropts);
+            return f;
       },
+            py::arg("fst"),
+            // Matches from_string: consumers such as TrainingGraphCompiler take
+            // ownership of the fst and delete it themselves.
            py::return_value_policy::reference)
       .def("write_to_string", [](const PyClass& f){
              std::ostringstream os;

@@ -11,7 +11,6 @@ import os
 import typing
 from pathlib import Path
 
-import pywrapfst
 import yaml
 
 from _kalpy.feat import (
@@ -29,13 +28,13 @@ from kalpy.exceptions import AcousticModelError
 from kalpy.feat.cmvn import CmvnComputer
 from kalpy.feat.mfcc import MfccComputer
 from kalpy.feat.pitch import PitchComputer
-from kalpy.fstext.lexicon import LexiconCompiler
 from kalpy.gmm.utils import read_gmm_model
 from kalpy.utils import read_kaldi_object
 
 if typing.TYPE_CHECKING:
     from _kalpy.gmm import AmDiagGmm
     from _kalpy.hmm import TransitionModel
+    from kalpy.fstext.lexicon import LexiconCompiler
 
 logger = logging.getLogger("mfa")
 
@@ -247,7 +246,11 @@ class AcousticModel:
         return self._tm
 
     @property
-    def lexicon_compiler(self):
+    def lexicon_compiler(self) -> LexiconCompiler:
+        from kalpy.fstext._pynini import require_pynini
+        from kalpy.fstext.lexicon import LexiconCompiler
+
+        _, pywrapfst = require_pynini("AcousticModel.lexicon_compiler")
         lc = LexiconCompiler(
             silence_probability=self.meta.get("silence_probability", 0.5),
             initial_silence_probability=self.meta.get("initial_silence_probability", 0.5),

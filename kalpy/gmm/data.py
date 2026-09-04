@@ -8,7 +8,6 @@ import typing
 from dataclasses import dataclass
 
 import numpy as np
-import pywrapfst
 from praatio import textgrid as tgio
 from praatio.data_classes.textgrid import _tgToDictionary
 from praatio.utilities.constants import Interval as PraatInterval
@@ -42,6 +41,9 @@ from _kalpy.util import (
 )
 from kalpy.exceptions import CtmError
 from kalpy.utils import generate_read_specifier
+
+if typing.TYPE_CHECKING:
+    import pywrapfst
 
 
 def to_tg_interval(

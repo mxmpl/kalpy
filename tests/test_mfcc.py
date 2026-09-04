@@ -13,15 +13,24 @@ from _kalpy.util import (
     RandomAccessBaseFloatMatrixReader,
 )
 from kalpy.data import KaldiMapping, MatrixArchive, Segment
-from kalpy.decoder.training_graphs import TrainingGraphCompiler
 from kalpy.feat.cmvn import CmvnComputer
 from kalpy.feat.data import FeatureArchive
 from kalpy.feat.fmllr import FmllrComputer
 from kalpy.feat.mfcc import MfccComputer
-from kalpy.fstext.lexicon import LexiconCompiler
 from kalpy.gmm.align import GmmAligner
 from kalpy.gmm.data import AlignmentArchive, LatticeArchive
 from kalpy.utils import generate_read_specifier, generate_write_specifier
+
+
+@pytest.fixture
+def lexicon_compiler():
+    pytest.importorskip(
+        "pynini",
+        reason="pynini is an optional dependency and has no wheels outside Linux x86_64",
+    )
+    from kalpy.fstext.lexicon import LexiconCompiler
+
+    return LexiconCompiler
 
 
 @pytest.mark.order(1)
@@ -202,9 +211,10 @@ def test_fmllr_sat(
     sat_dictionary_path,
     sat_temp_dir,
     sat_phones,
+    lexicon_compiler,
     reference_trans_path,
 ):
-    lc = LexiconCompiler(position_dependent_phones=False, phones=sat_phones)
+    lc = lexicon_compiler(position_dependent_phones=False, phones=sat_phones)
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
@@ -244,9 +254,10 @@ def test_fmllr_sat_no_two_model(
     sat_dictionary_path,
     sat_temp_dir,
     sat_phones,
+    lexicon_compiler,
     reference_trans_path,
 ):
-    lc = LexiconCompiler(position_dependent_phones=False, phones=sat_phones)
+    lc = lexicon_compiler(position_dependent_phones=False, phones=sat_phones)
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
@@ -283,8 +294,9 @@ def test_fmllr_decode_sat(
     sat_dictionary_path,
     sat_temp_dir,
     sat_phones,
+    lexicon_compiler,
 ):
-    lc = LexiconCompiler(position_dependent_phones=False, phones=sat_phones)
+    lc = lexicon_compiler(position_dependent_phones=False, phones=sat_phones)
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
@@ -315,10 +327,11 @@ def test_fmllr_compose(
     sat_dictionary_path,
     sat_temp_dir,
     sat_phones,
+    lexicon_compiler,
     reference_trans_path,
     reference_trans_compose_path,
 ):
-    lc = LexiconCompiler(position_dependent_phones=False, phones=sat_phones)
+    lc = lexicon_compiler(position_dependent_phones=False, phones=sat_phones)
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
