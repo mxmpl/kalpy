@@ -30,11 +30,37 @@ test = [
     "pytest>=9.1.1",
     "pytest-order>=1.5.0",
 ]
+docs = [
+    "myst-parser>=4.0.1",
+    "numpydoc>=1.10.0",
+    "packaging>=26.3",
+    "pydata-sphinx-theme>=0.19.0",
+    "sphinx>=8.1.3",
+    "sphinx-click>=6.2.0",
+    "sphinx_design>=0.6.1",
+    "sphinx-intl>=2.4.0",
+]
 
 [tool.scikit-build]
 minimum-version = "build-system.requires"
 build-dir = "build/{wheel_tag}"
 wheel.packages = ["kalpy"]
+sdist.exclude = [
+    ".github/",
+    "docs/",
+    "tests/",
+    "*.alimdl",
+    "*.arpa",
+    "*.ark",
+    "*.flac",
+    "*.ipynb",
+    "*.json",
+    "*.mat",
+    "*.mdl",
+    "*.scp",
+    "*.TextGrid",
+    "*.wav",
+]
 
 [[tool.dynamic-metadata]]
 provider = "scikit_build_core.metadata.setuptools_scm"
@@ -83,13 +109,6 @@ whitelist-regex = []
 ignore-regex = []
 color = true
 
-
-[tool.check-manifest]
-ignore = [
-    ".deepsource.toml",
-    ".readthedocs.yaml",
-]
-
 [tool.coverage.run]
 source = ["kalpy"]
 concurrency = ["multiprocessing"]
@@ -98,7 +117,6 @@ parallel = true
 omit = [
     ".tox/*"
 ]
-
 
 [tool.coverage.report]
 show_missing = true
