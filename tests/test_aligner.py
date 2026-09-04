@@ -1,3 +1,10 @@
+import pytest
+
+pytest.importorskip(
+    "pynini",
+    reason="pynini is an optional dependency and has no wheels outside Linux x86_64",
+)
+
 from kalpy.aligner import KalpyAligner
 from kalpy.data import Segment
 from kalpy.models import AcousticModel

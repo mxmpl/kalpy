@@ -1709,15 +1709,6 @@ void pybind_training_graph_compiler(py::module &m) {
                        py::arg("disambig_syms"),
                        py::arg("opts"))
           .def(py::init([](const TransitionModel &trans_model, const ContextDependency &ctx_dep,
-                py::object fst, const std::vector<int32> &disambig_syms,
-                const TrainingGraphCompilerOptions &opts){
-                  auto pywrapfst_mod = py::module_::import("pywrapfst");
-                  auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-                  VectorFst<StdArc>* mf = down_cast<VectorFst<StdArc> *>(ptr->__pyx_base._mfst->GetMutableFst<StdArc>());
-                    TrainingGraphCompiler gc(trans_model, ctx_dep, mf, disambig_syms, opts);
-                    return gc;
-          }))
-          .def(py::init([](const TransitionModel &trans_model, const ContextDependency &ctx_dep,
                 const std::string lex_rxfilename, const std::vector<int32> &disambig_syms,
                 const TrainingGraphCompilerOptions &opts){
                 VectorFst<StdArc> *lex_fst = fst::ReadFstKaldi(lex_rxfilename);
@@ -1738,22 +1729,6 @@ void pybind_training_graph_compiler(py::module &m) {
                [](PyClass& gc, const fst::VectorFst<fst::StdArc> &phone2word_fst){
                     py::gil_scoped_release gil_release;
 
-                    VectorFst<StdArc> decode_fst;
-
-                    if (!gc.CompileGraphFromLG(phone2word_fst, &decode_fst)) {
-                         decode_fst.DeleteStates();  // Just make it empty.
-                    }
-                    return decode_fst;
-               },
-               "Same as `CompileGraph`, but uses an external LG fst.",
-               py::arg("phone2word_fst"),
-                  py::return_value_policy::take_ownership)
-        .def("CompileGraphFromLG",
-               [](PyClass& gc, py::object fst){
-                  auto pywrapfst_mod = py::module_::import("pywrapfst");
-                  auto ptr = reinterpret_cast<VectorFstObject*>(fst.ptr());
-                  auto vf = ptr->__pyx_base._mfst->GetMutableFst<StdArc>();
-                  VectorFst<StdArc> phone2word_fst(*vf);
                     VectorFst<StdArc> decode_fst;
 
                     if (!gc.CompileGraphFromLG(phone2word_fst, &decode_fst)) {

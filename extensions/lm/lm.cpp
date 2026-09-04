@@ -346,15 +346,12 @@ void init_lm(py::module &_m) {
     m.def("arpa_to_fst",
     [](
       std::string arpa_rxfilename,
-      py::handle symbol_table,
+      fst::SymbolTable* symbols,
     std::string disambig_symbol = "#0",
     std::string bos_symbol = "<s>",
     std::string eos_symbol = "</s>",
     bool ilabel_sort = true
     ){
-        auto pywrapfst_mod = py::module_::import("pywrapfst");
-        auto ptr = reinterpret_cast<SymbolTableObject*>(symbol_table.ptr());
-      fst::SymbolTable* symbols = ptr->_smart_table.get();
     int64 disambig_symbol_id = 0;
 
     ArpaParseOptions options;

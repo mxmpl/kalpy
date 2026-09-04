@@ -4,9 +4,6 @@ import os
 import pathlib
 import typing
 
-import pynini
-import pywrapfst
-
 from _kalpy.decoder import TrainingGraphCompiler as _TrainingGraphCompiler
 from _kalpy.decoder import TrainingGraphCompilerOptions
 from _kalpy.fstext import (
@@ -25,9 +22,12 @@ from _kalpy.fstext import (
 from _kalpy.hmm import TransitionModel, make_h_transducer
 from _kalpy.tree import ContextDependency
 from _kalpy.util import ReadKaldiObject
+from kalpy.fstext._pynini import require_pynini
 from kalpy.fstext.lexicon import LexiconCompiler
 from kalpy.fstext.utils import kaldi_to_pynini, pynini_to_kaldi
 from kalpy.utils import generate_write_specifier
+
+pynini, pywrapfst = require_pynini("kalpy.decoder.training_graphs")
 
 logger = logging.getLogger("kalpy.graphs")
 logger.setLevel(logging.DEBUG)

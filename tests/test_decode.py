@@ -1,5 +1,10 @@
 import pytest
 
+pytest.importorskip(
+    "pynini",
+    reason="pynini is an optional dependency and has no wheels outside Linux x86_64",
+)
+
 from kalpy.data import KaldiMapping
 from kalpy.decoder.decode_graph import DecodeGraphCompiler
 from kalpy.feat.data import FeatureArchive

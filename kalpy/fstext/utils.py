@@ -1,9 +1,13 @@
 """Utility functions for working with fstext"""
+from __future__ import annotations
+
 import typing
 
-import pynini
-
 from _kalpy.fstext import ConstFst, VectorFst
+from kalpy.fstext._pynini import require_pynini
+
+if typing.TYPE_CHECKING:
+    import pynini
 
 
 def kaldi_to_pynini(fst: typing.Union[VectorFst, ConstFst]) -> pynini.Fst:
@@ -20,6 +24,7 @@ def kaldi_to_pynini(fst: typing.Union[VectorFst, ConstFst]) -> pynini.Fst:
     :class:`~pynini.Fst`
         FST for use in pynini
     """
+    pynini, _ = require_pynini("kaldi_to_pynini")
     return pynini.Fst.read_from_string(fst.write_to_string())
 
 

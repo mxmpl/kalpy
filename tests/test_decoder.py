@@ -3,6 +3,12 @@ import os
 import sys
 
 import pytest
+
+pytest.importorskip(
+    "pynini",
+    reason="pynini is an optional dependency and has no wheels outside Linux x86_64",
+)
+
 import pywrapfst
 
 from kalpy.decoder.decode_graph import DecodeGraphCompiler
