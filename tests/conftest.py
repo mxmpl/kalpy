@@ -3,9 +3,10 @@ import pathlib
 import subprocess
 from io import BytesIO
 
-import librosa
 import pytest
 import soundfile
+
+from kalpy._vendor import librosa
 
 
 @pytest.fixture(scope="session")

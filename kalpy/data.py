@@ -6,7 +6,6 @@ import pathlib
 import typing
 from dataclasses import dataclass
 
-import librosa
 import numpy as np
 
 from _kalpy.matrix import FloatMatrix
@@ -16,6 +15,7 @@ from _kalpy.util import (
     SequentialBaseDoubleMatrixReader,
     SequentialBaseFloatMatrixReader,
 )
+from kalpy._vendor import librosa
 from kalpy.utils import generate_read_specifier
 
 
