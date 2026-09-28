@@ -49,60 +49,79 @@ endif()
 
 find_package(CUDAToolkit)
 
+option(KALPY_WITH_NNET "Build bindings for Kaldi's neural network, online decoding and keyword search libraries" ON)
+option(KALPY_STATIC_KALDI "Link Kaldi, OpenFst and OpenBLAS statically, keeping only the code the bindings use (for standalone wheels)" OFF)
+
 find_package(pybind11 REQUIRED)
 include_directories(extensions)
-    pybind11_add_module(_kalpy extensions/_kalpy.cpp
-                                extensions/chain/chain.cpp
-                                extensions/cudamatrix/cudamatrix.cpp
-                                extensions/decoder/decoder.cpp
-                                extensions/feat/feat.cpp
-                                extensions/fstext/fstext.cpp
-                                extensions/gmm/gmm.cpp
-                                extensions/hmm/hmm.cpp
-                                extensions/itf/itf.cpp
-                                extensions/ivector/ivector.cpp
-                                extensions/kws/kws.cpp
-                                extensions/lat/lat.cpp
-                                extensions/lm/lm.cpp
-                                #extensions/rnnlm/rnnlm.cpp
-                                extensions/online/online.cpp
-                                extensions/online2/online2.cpp
-                                extensions/matrix/matrix.cpp
-                                extensions/nnet/nnet.cpp
-                                extensions/nnet2/nnet2.cpp
-                                extensions/nnet3/nnet3.cpp
-                                extensions/transform/transform.cpp
-                                extensions/tree/tree.cpp
-                                extensions/util/util.cpp
-                                )
-    target_link_libraries(_kalpy PUBLIC kaldi-base kaldi-chain
-                                        kaldi-matrix
-                                        kaldi-cudamatrix
-                                        kaldi-hmm
-                                        kaldi-online kaldi-online2 kaldi-rnnlm
-                                        kaldi-nnet3
-                                        kaldi-nnet2 kaldi-nnet
-                                        kaldi-kws
-                                        kaldi-decoder
-                                        kaldi-lat
-                                        kaldi-nnet3
-                                        kaldi-nnet2 kaldi-nnet
-                                        kaldi-ivector kaldi-lm
-                                        kaldi-fstext kaldi-feat
-                                        kaldi-transform kaldi-gmm
-                                        kaldi-tree
-                                        kaldi-util
-                                        fst
-                                        fstscript
-                                        )
-if (CUDAToolkit_FOUND)
 
-    find_library(KALDI_CUDADECODER kaldi-cudadecoder)
+set(KALPY_SOURCES extensions/_kalpy.cpp
+                  extensions/cudamatrix/cudamatrix.cpp
+                  extensions/decoder/decoder.cpp
+                  extensions/feat/feat.cpp
+                  extensions/fstext/fstext.cpp
+                  extensions/gmm/gmm.cpp
+                  extensions/hmm/hmm.cpp
+                  extensions/itf/itf.cpp
+                  extensions/ivector/ivector.cpp
+                  extensions/lat/lat.cpp
+                  extensions/lm/lm.cpp
+                  extensions/matrix/matrix.cpp
+                  extensions/transform/transform.cpp
+                  extensions/tree/tree.cpp
+                  extensions/util/util.cpp
+                  )
+set(KALPY_KALDI_LIBS kaldi-decoder kaldi-lat kaldi-ivector kaldi-lm
+                     kaldi-fstext kaldi-feat kaldi-transform kaldi-gmm
+                     kaldi-hmm kaldi-tree kaldi-cudamatrix kaldi-util
+                     kaldi-matrix kaldi-base
+                     )
+if(KALPY_WITH_NNET)
+    list(APPEND KALPY_SOURCES extensions/chain/chain.cpp
+                              extensions/kws/kws.cpp
+                              #extensions/rnnlm/rnnlm.cpp
+                              extensions/online/online.cpp
+                              extensions/online2/online2.cpp
+                              extensions/nnet/nnet.cpp
+                              extensions/nnet2/nnet2.cpp
+                              extensions/nnet3/nnet3.cpp
+                              )
+    list(PREPEND KALPY_KALDI_LIBS kaldi-online2 kaldi-online kaldi-rnnlm
+                                  kaldi-kws kaldi-nnet3 kaldi-chain
+                                  kaldi-nnet2 kaldi-nnet
+                                  )
+endif()
 
-    if(KALDI_CUDADECODER)
+pybind11_add_module(_kalpy ${KALPY_SOURCES})
+if(KALPY_WITH_NNET)
+    target_compile_definitions(_kalpy PRIVATE KALPY_WITH_NNET)
+endif()
 
-       target_link_libraries(_kalpy PUBLIC kaldi-cudadecoder kaldi-cudafeat
-                                        )
+if(KALPY_STATIC_KALDI)
+    # Everything ends up in _kalpy itself: static libraries (built with
+    # -ffunction-sections) let the linker drop the code the bindings never
+    # reach, and none of their symbols are exported, so kalpy's OpenFst cannot
+    # clash with another copy loaded in the same process (e.g. pynini's).
+    find_library(KALPY_OPENBLAS NAMES libopenblas.a REQUIRED)
+    find_package(Threads REQUIRED)
+    set(KALPY_STATIC_LIBS ${KALPY_KALDI_LIBS} fstscript fst ${KALPY_OPENBLAS})
+    if(APPLE)
+        target_link_libraries(_kalpy PRIVATE ${KALPY_STATIC_LIBS})
+        target_link_options(_kalpy PRIVATE -Wl,-dead_strip
+                                           -Wl,-exported_symbol,_PyInit__kalpy)
+    else()
+        # Static libraries depend on each other in both directions
+        target_link_libraries(_kalpy PRIVATE -Wl,--start-group ${KALPY_STATIC_LIBS} -Wl,--end-group)
+        target_link_options(_kalpy PRIVATE -Wl,--gc-sections -Wl,--exclude-libs,ALL)
+    endif()
+    target_link_libraries(_kalpy PRIVATE Threads::Threads ${CMAKE_DL_LIBS} m)
+else()
+    target_link_libraries(_kalpy PUBLIC ${KALPY_KALDI_LIBS} fst fstscript)
+    if (CUDAToolkit_FOUND)
+        find_library(KALDI_CUDADECODER kaldi-cudadecoder)
+        if(KALDI_CUDADECODER)
+           target_link_libraries(_kalpy PUBLIC kaldi-cudadecoder kaldi-cudafeat)
+        endif()
     endif()
 endif()
 
