@@ -1,47 +1,74 @@
-name: Publish Python distributions to PyPI
+name: Build wheels and publish to PyPI
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   release:
     types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: wheels-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-n-publish:
+  build-wheels:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             label: linux-64
-            prefix: /usr/share/miniconda3/envs/my-env
+          - os: ubuntu-24.04-arm
+            label: linux-aarch64
+          - os: macos-15-intel
+            label: osx-64
+          - os: macos-latest
+            label: osx-arm64
 
-    name: ${{ matrix.label }}
+    name: wheels ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@main
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v4.2.1
+
+      - uses: actions/upload-artifact@v4
         with:
-          python-version: "3.10"
+          name: wheels-${{ matrix.label }}
+          path: wheelhouse/*.whl
 
-      - name: Install pypa/build
-        run: >-
-          python -m
-          pip install
-          build
-          --user
+  build-sdist:
+    name: sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - name: Build a binary wheel and a source tarball
-        env:
-          KALDI_ROOT: ~/micromamba/envs/my-env
-        shell: bash -l {0}
-        run: >-
-          python -m
-          build
-          --sdist
-          --outdir dist/
-          .
+      - name: Build source tarball
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  publish:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
