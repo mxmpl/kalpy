@@ -43,10 +43,8 @@ jobs:
           miniforge-version: latest
 
       - name: Build kalpy
-        env:
-          KALDI_ROOT: ~/miniconda3/envs/kalpy_build
         shell: bash -l {0}
-        run: pip install .
+        run: KALDI_ROOT="$CONDA_PREFIX" pip install -v ".[test]"
 
       - name: Run tests
         shell: bash -l {0}

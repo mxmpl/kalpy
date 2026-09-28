@@ -1,23 +1,7 @@
 channels:
   - conda-forge
 dependencies:
-  - python>=3.9
-  - numpy
-  - librosa
-  - cmake
-  - ninja
-  - pysoundfile
-  - kaldi=*=*cpu*
-  - scipy
-  - pynini
-  - openfst
-  - setuptools_scm
-  - pybind11
-  - pytest
+  - python>=3.10
   - pip
-  - pyyaml
-  - praatio
-  - pytest-order
-  - pip:
-      - build
-      - twine
+  - kaldi=*=*cpu*
+  - pynini>=2.1.7

@@ -1,6 +1,0 @@
-librosa
-numpy
-pysoundfile
-pynini
-pyyaml
-praatio>=6.0.0
