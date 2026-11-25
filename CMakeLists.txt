@@ -98,10 +98,6 @@ if(KALPY_WITH_NNET)
 endif()
 
 if(KALPY_STATIC_KALDI)
-    # Everything ends up in _kalpy itself: static libraries (built with
-    # -ffunction-sections) let the linker drop the code the bindings never
-    # reach, and none of their symbols are exported, so kalpy's OpenFst cannot
-    # clash with another copy loaded in the same process (e.g. pynini's).
     find_library(KALPY_OPENBLAS NAMES libopenblas.a REQUIRED)
     find_package(Threads REQUIRED)
     set(KALPY_STATIC_LIBS ${KALPY_KALDI_LIBS} fstscript fst ${KALPY_OPENBLAS})
@@ -112,8 +108,12 @@ if(KALPY_STATIC_KALDI)
     else()
         # Static libraries depend on each other in both directions
         target_link_libraries(_kalpy PRIVATE -Wl,--start-group ${KALPY_STATIC_LIBS} -Wl,--end-group)
-        target_link_options(_kalpy PRIVATE -Wl,--gc-sections -Wl,--exclude-libs,ALL)
+        set(KALPY_VERSION_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/extensions/_kalpy.version")
+        target_link_options(_kalpy PRIVATE -Wl,--gc-sections
+                                           -Wl,--version-script=${KALPY_VERSION_SCRIPT})
+        set_property(TARGET _kalpy APPEND PROPERTY LINK_DEPENDS ${KALPY_VERSION_SCRIPT})
     endif()
+    set_target_properties(_kalpy PROPERTIES INSTALL_RPATH "" SKIP_BUILD_RPATH ON)
     target_link_libraries(_kalpy PRIVATE Threads::Threads ${CMAKE_DL_LIBS} m)
 else()
     target_link_libraries(_kalpy PUBLIC ${KALPY_KALDI_LIBS} fst fstscript)

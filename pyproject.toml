@@ -77,13 +77,15 @@ skip = "*-musllinux_*"
 build-verbosity = 1
 test-extras = ["test"]
 test-command = "pytest {project}/tests -x"
+before-all = [
+    "cmake -S {project}/deps -B {project}/build/deps -DCMAKE_INSTALL_PREFIX=$KALDI_ROOT",
+    "cmake --build {project}/build/deps",
+]
 
 [tool.cibuildwheel.linux]
-before-all = "scripts/build_kaldi.sh"
 environment = { KALDI_ROOT = "/opt/kaldi", SKBUILD_CMAKE_DEFINE = "KALPY_STATIC_KALDI=ON;KALPY_WITH_NNET=OFF" }
 
 [tool.cibuildwheel.macos]
-before-all = "scripts/build_kaldi.sh"
 environment = { KALDI_ROOT = "/tmp/kaldi", MACOSX_DEPLOYMENT_TARGET = "11.0", SKBUILD_CMAKE_DEFINE = "KALPY_STATIC_KALDI=ON;KALPY_WITH_NNET=OFF" }
 
 [tool.black]

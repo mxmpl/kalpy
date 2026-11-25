@@ -77,9 +77,10 @@ def temp_dir(test_dir):
 
 
 @pytest.fixture(scope="session")
-def reference_dir(test_dir):
-    p = test_dir.joinpath("kaldi")
-    return p
+def reference_dir(tmp_path_factory):
+    # Reference files produced with Kaldi's command line tools, generated for
+    # each test session so that runs do not modify the repository
+    return tmp_path_factory.mktemp("kaldi")
 
 
 @pytest.fixture(scope="session")
@@ -536,6 +537,16 @@ def sat_phones():
 @pytest.fixture(scope="session")
 def wav_path(wav_dir):
     return wav_dir.joinpath("acoustic_corpus.wav")
+
+
+@pytest.fixture(scope="session")
+def wav_scp_path(reference_dir, wav_path):
+    # Kaldi resolves the paths in an scp file against the working directory, so
+    # the file is written with an absolute path to work wherever pytest runs from
+    # (cibuildwheel runs the tests from a temporary directory)
+    scp_path = reference_dir.joinpath("wav.scp")
+    scp_path.write_text(f"1-1 {wav_path.resolve()}\n")
+    return scp_path
 
 
 @pytest.fixture(scope="session")

@@ -34,9 +34,8 @@ def lexicon_compiler():
 
 
 @pytest.mark.order(1)
-def test_wave(wav_path, reference_dir):
-    ref_wav_scp = reference_dir.joinpath("wav.scp")
-    wav_rspecifier = generate_read_specifier(ref_wav_scp)
+def test_wave(wav_path, wav_scp_path):
+    wav_rspecifier = generate_read_specifier(wav_scp_path)
     wave_reader = RandomAccessWaveReader(wav_rspecifier)
     kaldi_wave = wave_reader.Value("1-1").Data().numpy()[0, :]
     segment = Segment(wav_path)

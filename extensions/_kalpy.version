@@ -1,0 +1,6 @@
+/* Linker version script for static builds (KALPY_STATIC_KALDI): export only the
+   module's entry point, as -exported_symbol does on macOS. */
+{
+  global: PyInit__kalpy;
+  local: *;
+};
