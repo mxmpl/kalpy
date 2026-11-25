@@ -1,0 +1,31 @@
+Static OpenFst libraries on Windows: build libfst with BUILD_SHARED_LIBS
+instead of always as a DLL, and drop the dllexport/dllimport annotations from
+the headers. Applied on top of openfst-0001-Add-CMake-files-and-Windows-compat.patch.
+
+diff --git a/src/include/fst/exports/exports.h b/src/include/fst/exports/exports.h
+index 84f836a..addf674 100644
+--- a/src/include/fst/exports/exports.h
++++ b/src/include/fst/exports/exports.h
+@@ -2,7 +2,9 @@
+ #ifndef exports_H
+ #define exports_H
+ 
+-#ifdef _WIN32
++// kalpy: OpenFst is built as static libraries (also used by the code that
++// includes these headers), which need no __declspec(dllexport/dllimport).
++#if 0  // was: #ifdef _WIN32
+     #include <fst/exports/fst_Export.h>
+     #include <fst/exports/fstcompact_Export.h>
+     #include <fst/exports/fstcompressscript_Export.h>
+diff --git a/src/lib/CMakeLists.txt b/src/lib/CMakeLists.txt
+index c8fe9ea..d98e15f 100644
+--- a/src/lib/CMakeLists.txt
++++ b/src/lib/CMakeLists.txt
+@@ -1,7 +1,6 @@
+ 
+ 
+ add_library(fst
+-  SHARED
+   compat.cc
+   encode.cc
+   flags.cc

@@ -93,6 +93,17 @@ before-all = [
 ]
 environment = { KALDI_ROOT = "/tmp/kaldi", MACOSX_DEPLOYMENT_TARGET = "11.0", SKBUILD_CMAKE_DEFINE = "KALPY_STATIC_KALDI=ON;KALPY_WITH_NNET=OFF" }
 
+# Needs a Visual Studio developer environment (MSVC, Ninja) and clang-cl, see
+# deps/CMakeLists.txt. The dependencies are built in a short path to stay
+# below MAX_PATH.
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+before-all = [
+    "cmake -S {project}/deps -B C:/kb -G Ninja -DCMAKE_INSTALL_PREFIX=C:/kaldi",
+    "cmake --build C:/kb",
+]
+environment = { KALDI_ROOT = "C:/kaldi", SKBUILD_CMAKE_DEFINE = "KALPY_STATIC_KALDI=ON;KALPY_WITH_NNET=OFF" }
+
 [tool.black]
 line-length = 99
 

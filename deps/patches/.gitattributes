@@ -1,0 +1,2 @@
+# Applied with GNU patch on Windows too: keep LF line endings
+*.patch -text

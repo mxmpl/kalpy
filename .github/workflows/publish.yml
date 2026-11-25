@@ -1,12 +1,12 @@
 name: Build wheels and publish to PyPI
 
+# Temporarily reduced to the Windows wheels while they are being set up.
+
 on:
   push:
-    branches: [ main ]
+    branches: [ main, pr/wheels-windows ]
   pull_request:
     branches: [ main ]
-  release:
-    types: [published]
   workflow_dispatch:
 
 concurrency:
@@ -15,63 +15,22 @@ concurrency:
 
 jobs:
   build-wheels:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            label: linux-64
-          - os: ubuntu-24.04-arm
-            label: linux-aarch64
-          - os: macos-15-intel
-            label: osx-64
-          - os: macos-latest
-            label: osx-arm64
-
-    name: wheels ${{ matrix.label }}
-    runs-on: ${{ matrix.os }}
+    name: wheels win-64
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      # MSVC, plus the Ninja and CMake bundled with Visual Studio, on PATH
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.2.1
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.label }}
+          name: wheels-win-64
           path: wheelhouse/*.whl
-
-  build-sdist:
-    name: sdist
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Build source tarball
-        run: pipx run build --sdist
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: dist/*.tar.gz
-
-  publish:
-    name: Publish to PyPI
-    needs: [build-wheels, build-sdist]
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v5
-        with:
-          path: dist
-          merge-multiple: true
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}

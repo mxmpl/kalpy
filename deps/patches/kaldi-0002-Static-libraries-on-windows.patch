@@ -1,0 +1,48 @@
+Static Kaldi libraries with MSVC: only add the dllimport definitions
+(KALDI_DLL_IMPORTS...) to the consumers of kaldi-base, kaldi-cudamatrix and
+kaldi-util when they are DLLs. Applied on top of
+kaldi-0001-Shared-libraries-on-windows.patch.
+
+diff --git a/cmake/gen_cmake_skeleton.py b/cmake/gen_cmake_skeleton.py
+index 2eac686..c500cea 100644
+--- a/cmake/gen_cmake_skeleton.py
++++ b/cmake/gen_cmake_skeleton.py
+@@ -271,30 +271,30 @@ class CMakeListsLibrary(object):
+         ret.append("     $<INSTALL_INTERFACE:include/kaldi>")
+         ret.append(")\n")
+         if self.dir_name.startswith("base"):
+-            ret.append("if(MSVC)")
++            ret.append("if(MSVC AND BUILD_SHARED_LIBS)")
+             ret.append("set_target_properties(" + self.target_name + " PROPERTIES DEFINE_SYMBOL \"KALDI_DLL_EXPORTS\")")
+ 
+             ret.append("target_compile_definitions(" + self.target_name + " INTERFACE KALDI_DLL_IMPORTS)")
+ 
+-            ret.append("endif(MSVC)\n")
++            ret.append("endif()\n")
+         elif self.dir_name.startswith("cudamatrix"):
+-            ret.append("if(MSVC)")
++            ret.append("if(MSVC AND BUILD_SHARED_LIBS)")
+             ret.append("set_target_properties(" + self.target_name + " PROPERTIES DEFINE_SYMBOL \"KALDI_CUMATRIX_DLL_EXPORTS\")")
+ 
+             ret.append("target_compile_definitions(" + self.target_name + " INTERFACE KALDI_CUMATRIX_DLL_IMPORTS)")
+ 
+-            ret.append("endif(MSVC)\n")
++            ret.append("endif()\n")
+         elif self.dir_name.startswith("cudafeat"):
+-            ret.append("if(MSVC)")
++            ret.append("if(MSVC AND BUILD_SHARED_LIBS)")
+             ret.append("target_compile_definitions(" + self.target_name + " INTERFACE KALDI_CUMATRIX_DLL_IMPORTS)")
+-            ret.append("endif(MSVC)\n")
++            ret.append("endif()\n")
+         elif self.dir_name.startswith("util"):
+-            ret.append("if(MSVC)")
++            ret.append("if(MSVC AND BUILD_SHARED_LIBS)")
+             ret.append("set_target_properties(" + self.target_name + " PROPERTIES DEFINE_SYMBOL \"KALDI_UTIL_DLL_EXPORTS\")")
+ 
+             ret.append("target_compile_definitions(" + self.target_name + " INTERFACE KALDI_UTIL_DLL_IMPORTS)")
+ 
+-            ret.append("endif(MSVC)\n")
++            ret.append("endif()\n")
+ 
+         if len(self.depends) > 0:
+             ret.append("target_link_libraries(" + self.target_name + " PUBLIC")

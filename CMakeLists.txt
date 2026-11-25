@@ -13,6 +13,7 @@ if(KALDI_ROOT)
     message(STATUS "Adding KALDI_ROOT directories: ${KALDI_ROOT}")
     set(CMAKE_INCLUDE_PATH "${KALDI_ROOT}/include")
     set(CMAKE_LIBRARY_PATH "${KALDI_ROOT}/lib")
+    list(APPEND CMAKE_PREFIX_PATH "${KALDI_ROOT}")
     link_directories("${KALDI_ROOT}/lib")
     include_directories("${KALDI_ROOT}/include")
     include_directories("${KALDI_ROOT}/include/kaldi")
@@ -24,6 +25,8 @@ endif()
 add_definitions(-DKALDI_NO_PORTAUDIO=1)
 add_definitions(-DOPENFST_VER=18400)
 if (MSVC)
+    # OpenFst's headers include <dlfcn.h>. With KALPY_STATIC_KALDI, the static
+    # dlfcn-win32 built by deps/CMakeLists.txt is found in KALDI_ROOT.
     find_package(dlfcn-win32 REQUIRED)
     set(CMAKE_DL_LIBS dlfcn-win32::dl)
 
@@ -98,13 +101,20 @@ if(KALPY_WITH_NNET)
 endif()
 
 if(KALPY_STATIC_KALDI)
-    find_library(KALPY_OPENBLAS NAMES libopenblas.a REQUIRED)
+    find_library(KALPY_OPENBLAS NAMES libopenblas.a openblas.lib libopenblas.lib REQUIRED)
     find_package(Threads REQUIRED)
     set(KALPY_STATIC_LIBS ${KALPY_KALDI_LIBS} fstscript fst ${KALPY_OPENBLAS})
     if(APPLE)
         target_link_libraries(_kalpy PRIVATE ${KALPY_STATIC_LIBS})
         target_link_options(_kalpy PRIVATE -Wl,-dead_strip
                                            -Wl,-exported_symbol,_PyInit__kalpy)
+    elseif(MSVC)
+        # link.exe rescans static libraries until nothing new is resolved, so
+        # their circular dependencies need no grouping, and a DLL only exports
+        # what is marked dllexport (PyInit__kalpy). /OPT:REF drops the
+        # functions (/Gy) and data (/Gw) the bindings never use.
+        target_link_libraries(_kalpy PRIVATE ${KALPY_STATIC_LIBS})
+        target_link_options(_kalpy PRIVATE /OPT:REF /OPT:ICF)
     else()
         # Static libraries depend on each other in both directions
         target_link_libraries(_kalpy PRIVATE -Wl,--start-group ${KALPY_STATIC_LIBS} -Wl,--end-group)
@@ -114,7 +124,10 @@ if(KALPY_STATIC_KALDI)
         set_property(TARGET _kalpy APPEND PROPERTY LINK_DEPENDS ${KALPY_VERSION_SCRIPT})
     endif()
     set_target_properties(_kalpy PROPERTIES INSTALL_RPATH "" SKIP_BUILD_RPATH ON)
-    target_link_libraries(_kalpy PRIVATE Threads::Threads ${CMAKE_DL_LIBS} m)
+    target_link_libraries(_kalpy PRIVATE Threads::Threads ${CMAKE_DL_LIBS})
+    if(NOT WIN32)
+        target_link_libraries(_kalpy PRIVATE m)
+    endif()
 else()
     target_link_libraries(_kalpy PUBLIC ${KALPY_KALDI_LIBS} fst fstscript)
     if (CUDAToolkit_FOUND)
@@ -125,7 +138,9 @@ else()
     endif()
 endif()
 
-if(MSVC)
+# Kaldi DLLs (conda-forge) need dllimport declarations; static libraries must not
+# have them.
+if(MSVC AND NOT KALPY_STATIC_KALDI)
 set_target_properties(_kalpy PROPERTIES
     DEFINE_SYMBOL "KALDI_DLL_IMPORTS"
                 "KALDI_CUMATRIX_DLL_IMPORTS"
