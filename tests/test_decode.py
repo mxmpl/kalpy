@@ -40,6 +40,8 @@ def test_decode(mono_tree_path, mono_model_path, dictionary_path, mono_temp_dir,
 
 @pytest.mark.order(3)
 def test_decode_sat_first_pass(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_align_model_path,
     sat_lda_mat_path,
@@ -54,7 +56,7 @@ def test_decode_sat_first_pass(
 
     gc = DecodeGraphCompiler(sat_align_model_path, sat_tree_path, lc)
     gc.load_from_file(hclg_path)
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     lattice_file_name = sat_temp_dir.joinpath("lat.ark")
     alignment_file_name = sat_temp_dir.joinpath("ali_decode.ark")
     word_file_name = sat_temp_dir.joinpath("words.ark")
@@ -62,7 +64,7 @@ def test_decode_sat_first_pass(
     textgrid_name = sat_temp_dir.joinpath("first_pass_decode.TextGrid")
     utt2spk["1-1"] = "1"
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,
@@ -88,6 +90,8 @@ def test_decode_sat_first_pass(
 
 @pytest.mark.order(5)
 def test_decode_sat_second_pass(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_model_path,
     sat_lda_mat_path,
@@ -102,7 +106,7 @@ def test_decode_sat_second_pass(
     hclg_path = sat_temp_dir.joinpath("hclg.fst")
     gc = DecodeGraphCompiler(sat_model_path, sat_tree_path, lc)
     gc.load_from_file(hclg_path)
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     trans_file_name = sat_temp_dir.joinpath("trans_decode.ark")
     word_file_name = sat_temp_dir.joinpath("words.ark")
     textgrid_name = sat_temp_dir.joinpath("second_pass_decode.TextGrid")
@@ -111,7 +115,7 @@ def test_decode_sat_second_pass(
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,

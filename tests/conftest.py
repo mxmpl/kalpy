@@ -8,6 +8,10 @@ import pytest
 import soundfile
 
 from kalpy._vendor import librosa
+from kalpy.data import KaldiMapping, Segment
+from kalpy.feat.cmvn import CmvnComputer
+from kalpy.feat.data import FeatureArchive
+from kalpy.feat.mfcc import MfccComputer
 
 KALDI_CLI_TOOLS = (
     "ali-to-post",
@@ -411,6 +415,26 @@ def sat_temp_dir(temp_dir):
     p = temp_dir.joinpath("sat")
     p.mkdir(exist_ok=True)
     return p
+
+
+@pytest.fixture(scope="session")
+def sat_mfcc_path(wav_path, sat_temp_dir):
+    ark_path = sat_temp_dir.joinpath("mfccs.ark")
+    feature_generator = MfccComputer(snip_edges=False, dither=0, use_energy=False)
+    segments = {"1-1": Segment(wav_path, begin=0.0, end=26.72325)}
+    feature_generator.export_feats(ark_path, segments.items(), write_scp=True, compress=False)
+    return ark_path
+
+
+@pytest.fixture(scope="session")
+def sat_cmvn_path(sat_mfcc_path, sat_temp_dir):
+    ark_path = sat_temp_dir.joinpath("cmvn.ark")
+    spk2utt = KaldiMapping()
+    spk2utt["1"] = ["1-1"]
+    feature_archive = FeatureArchive(sat_mfcc_path)
+    CmvnComputer(online=False).export_cmvn(ark_path, feature_archive, spk2utt, write_scp=True)
+    feature_archive.close()
+    return ark_path
 
 
 @pytest.fixture(scope="session")
