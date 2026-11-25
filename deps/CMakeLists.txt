@@ -30,19 +30,26 @@ set(KALPY_DEPS_DOWNLOAD_DIR "${CMAKE_BINARY_DIR}/downloads" CACHE PATH
 set(OPENBLAS_VERSION 0.3.34)
 set(OPENBLAS_SHA256 cd7e129868320cc2d033afa920e31202dfe0b8066a5b66661900ccc0f197dfed)
 set(OPENFST_VERSION 1.8.4)
-set(OPENFST_SHA256 a8ebbb6f3d92d07e671500587472518cfc87cb79b9a654a5a8abb2d0eb298016)
 # Keep in sync with https://github.com/conda-forge/kaldi-feedstock
 set(KALDI_VERSION 5.5.1172)
 set(KALDI_COMMIT f4007661023b98b8081fd875029f0dee62242fd1)
 set(KALDI_SHA256 139de58f1abbf727fee65e709a8fcc6d8714d5e5596a7eb15491faef1ac73304)
 
-# URLs are tried in order: openfst.org refuses downloads from some CI runners,
-# so a mirror can be put first (the archive is checked against the hash anyway).
+# openfst.org is behind a Cloudflare challenge that refuses downloads from CI
+# runners, so OpenFst comes from Debian's copy of the release.
+# To use the official tarball instead, set
+#   KALPY_OPENFST_URLS=https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.4.tar.gz
+#   KALPY_OPENFST_SHA256=a8ebbb6f3d92d07e671500587472518cfc87cb79b9a654a5a8abb2d0eb298016
 set(KALPY_OPENFST_URLS
-    "https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-${OPENFST_VERSION}.tar.gz"
+    "https://deb.debian.org/debian/pool/main/o/openfst/openfst_${OPENFST_VERSION}.orig.tar.bz2"
+    "https://snapshot.debian.org/archive/debian/20250119T144132Z/pool/main/o/openfst/openfst_${OPENFST_VERSION}.orig.tar.bz2"
     CACHE STRING "Semicolon-separated list of URLs for the OpenFst archive")
+set(KALPY_OPENFST_SHA256 48a7bf9eb85637f1e1d9f7519c418ed7c689cdedda652b51ffb9ab19df521041
+    CACHE STRING "SHA-256 of the OpenFst archive")
 
 find_program(MAKE_EXECUTABLE NAMES gmake make REQUIRED)
+find_program(AUTORECONF_EXECUTABLE autoreconf REQUIRED)
+find_program(LIBTOOLIZE_EXECUTABLE NAMES libtoolize glibtoolize REQUIRED)
 find_program(PATCH_EXECUTABLE patch REQUIRED)
 find_program(PYTHON3_EXECUTABLE python3 REQUIRED)
 cmake_host_system_information(RESULT NPROC QUERY NUMBER_OF_LOGICAL_CORES)
@@ -97,11 +104,13 @@ ExternalProject_Add(openblas
 # --- OpenFst ---
 ExternalProject_Add(openfst
     URL ${KALPY_OPENFST_URLS}
-    URL_HASH SHA256=${OPENFST_SHA256}
+    URL_HASH SHA256=${KALPY_OPENFST_SHA256}
     DOWNLOAD_DIR "${KALPY_DEPS_DOWNLOAD_DIR}"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     BUILD_IN_SOURCE TRUE
-    CONFIGURE_COMMAND ${DEPS_ENV} <SOURCE_DIR>/configure --prefix=${PREFIX}
+    CONFIGURE_COMMAND ${CMAKE_COMMAND} -E env LIBTOOLIZE=${LIBTOOLIZE_EXECUTABLE}
+        ${AUTORECONF_EXECUTABLE} --force --install
+    COMMAND ${DEPS_ENV} <SOURCE_DIR>/configure --prefix=${PREFIX}
         --enable-static --disable-shared --with-pic
         --enable-compress --enable-fsts --enable-grm --enable-special
     BUILD_COMMAND ${MAKE_EXECUTABLE} -j${NPROC}
