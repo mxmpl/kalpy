@@ -34,9 +34,8 @@ def lexicon_compiler():
 
 
 @pytest.mark.order(1)
-def test_wave(wav_path, reference_dir):
-    ref_wav_scp = reference_dir.joinpath("wav.scp")
-    wav_rspecifier = generate_read_specifier(ref_wav_scp)
+def test_wave(wav_path, wav_scp_path):
+    wav_rspecifier = generate_read_specifier(wav_scp_path)
     wave_reader = RandomAccessWaveReader(wav_rspecifier)
     kaldi_wave = wave_reader.Value("1-1").Data().numpy()[0, :]
     segment = Segment(wav_path)
@@ -106,8 +105,8 @@ def test_cmvn(mono_temp_dir):
 
 
 @pytest.mark.order(1)
-def test_export_mfcc_sat(wav_path, sat_temp_dir, reference_dir, reference_mfcc_path):
-    output_file_name = sat_temp_dir.joinpath("mfccs.ark")
+def test_export_mfcc_sat(wav_path, sat_temp_dir, sat_mfcc_path, reference_mfcc_path):
+    output_file_name = sat_temp_dir.joinpath("mfccs_compressed.ark")
     feature_generator = MfccComputer(snip_edges=False, dither=0, use_energy=False)
     segments = {"1-1": Segment(wav_path, begin=0.0, end=26.72325)}
     feature_generator.export_feats(output_file_name, segments.items())
@@ -120,19 +119,13 @@ def test_export_mfcc_sat(wav_path, sat_temp_dir, reference_dir, reference_mfcc_p
         assert mfccs.shape[0] == 2672
         assert mfccs.shape[1] == 13
     mfccs = archive["1-1"].numpy()
-    print(mfccs)
-    print(mfccs.shape)
     assert mfccs.shape[0] == 2672
     assert mfccs.shape[1] == 13
-
     archive.close()
     os.remove(output_file_name)
-    feature_generator.export_feats(
-        output_file_name, segments.items(), write_scp=True, compress=False
-    )
-    assert output_file_name.with_suffix(".scp").exists()
 
-    archive = FeatureArchive(output_file_name.with_suffix(".scp"))
+    assert sat_mfcc_path.with_suffix(".scp").exists()
+    archive = FeatureArchive(sat_mfcc_path.with_suffix(".scp"))
     ref_archive = FeatureArchive(reference_mfcc_path)
     for utt, mfccs in archive:
         mfccs = mfccs.numpy()
@@ -149,20 +142,15 @@ def test_export_mfcc_sat(wav_path, sat_temp_dir, reference_dir, reference_mfcc_p
 @pytest.mark.order(2)
 def test_cmvn_sat(
     sat_temp_dir,
-    reference_dir,
-    reference_mfcc_path,
+    sat_mfcc_path,
+    sat_cmvn_path,
     reference_cmvn_path,
     reference_final_features_path,
 ):
-    feature_file_name = sat_temp_dir.joinpath("mfccs.ark")
-    output_file_name = sat_temp_dir.joinpath("cmvn.ark")
-    feature_generator = CmvnComputer(online=False)
-    spk2utt = KaldiMapping()
-    spk2utt["1"] = ["1-1"]
+    feature_file_name = sat_mfcc_path
+    output_file_name = sat_cmvn_path
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
-    feature_archive = FeatureArchive(feature_file_name)
-    feature_generator.export_cmvn(output_file_name, feature_archive, spk2utt, write_scp=True)
     assert output_file_name.exists()
     cmvn_read_specifier = generate_read_specifier(output_file_name)
     cmvn_reader = RandomAccessBaseDoubleMatrixReader(cmvn_read_specifier)
@@ -204,6 +192,8 @@ def test_cmvn_sat(
 
 @pytest.mark.order(4)
 def test_fmllr_sat(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_model_path,
     sat_align_model_path,
@@ -218,9 +208,9 @@ def test_fmllr_sat(
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,
@@ -248,6 +238,8 @@ def test_fmllr_sat(
 
 @pytest.mark.order(4)
 def test_fmllr_sat_no_two_model(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_align_model_path,
     sat_lda_mat_path,
@@ -261,9 +253,9 @@ def test_fmllr_sat_no_two_model(
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,
@@ -287,6 +279,8 @@ def test_fmllr_sat_no_two_model(
 
 @pytest.mark.order(4)
 def test_fmllr_decode_sat(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_model_path,
     sat_align_model_path,
@@ -300,9 +294,9 @@ def test_fmllr_decode_sat(
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,
@@ -321,6 +315,8 @@ def test_fmllr_decode_sat(
 
 @pytest.mark.order(6)
 def test_fmllr_compose(
+    sat_mfcc_path,
+    sat_cmvn_path,
     sat_tree_path,
     sat_model_path,
     sat_lda_mat_path,
@@ -335,9 +331,9 @@ def test_fmllr_compose(
     lc.load_pronunciations(sat_dictionary_path)
     utt2spk = KaldiMapping()
     utt2spk["1-1"] = "1"
-    cmvn_file_name = sat_temp_dir.joinpath("cmvn.ark")
+    cmvn_file_name = sat_cmvn_path
     feature_archive = FeatureArchive(
-        sat_temp_dir.joinpath("mfccs.ark"),
+        sat_mfcc_path,
         utt2spk=utt2spk,
         cmvn_file_name=cmvn_file_name,
         lda_mat_file_name=sat_lda_mat_path,

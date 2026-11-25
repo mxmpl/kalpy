@@ -8,6 +8,10 @@ import pytest
 import soundfile
 
 from kalpy._vendor import librosa
+from kalpy.data import KaldiMapping, Segment
+from kalpy.feat.cmvn import CmvnComputer
+from kalpy.feat.data import FeatureArchive
+from kalpy.feat.mfcc import MfccComputer
 
 KALDI_CLI_TOOLS = (
     "ali-to-post",
@@ -77,9 +81,10 @@ def temp_dir(test_dir):
 
 
 @pytest.fixture(scope="session")
-def reference_dir(test_dir):
-    p = test_dir.joinpath("kaldi")
-    return p
+def reference_dir(tmp_path_factory):
+    # Reference files produced with Kaldi's command line tools, generated for
+    # each test session so that runs do not modify the repository
+    return tmp_path_factory.mktemp("kaldi")
 
 
 @pytest.fixture(scope="session")
@@ -413,6 +418,26 @@ def sat_temp_dir(temp_dir):
 
 
 @pytest.fixture(scope="session")
+def sat_mfcc_path(wav_path, sat_temp_dir):
+    ark_path = sat_temp_dir.joinpath("mfccs.ark")
+    feature_generator = MfccComputer(snip_edges=False, dither=0, use_energy=False)
+    segments = {"1-1": Segment(wav_path, begin=0.0, end=26.72325)}
+    feature_generator.export_feats(ark_path, segments.items(), write_scp=True, compress=False)
+    return ark_path
+
+
+@pytest.fixture(scope="session")
+def sat_cmvn_path(sat_mfcc_path, sat_temp_dir):
+    ark_path = sat_temp_dir.joinpath("cmvn.ark")
+    spk2utt = KaldiMapping()
+    spk2utt["1"] = ["1-1"]
+    feature_archive = FeatureArchive(sat_mfcc_path)
+    CmvnComputer(online=False).export_cmvn(ark_path, feature_archive, spk2utt, write_scp=True)
+    feature_archive.close()
+    return ark_path
+
+
+@pytest.fixture(scope="session")
 def dictionaries_dir(test_dir):
     return test_dir.joinpath("dictionaries")
 
@@ -536,6 +561,16 @@ def sat_phones():
 @pytest.fixture(scope="session")
 def wav_path(wav_dir):
     return wav_dir.joinpath("acoustic_corpus.wav")
+
+
+@pytest.fixture(scope="session")
+def wav_scp_path(reference_dir, wav_path):
+    # Kaldi resolves the paths in an scp file against the working directory, so
+    # the file is written with an absolute path to work wherever pytest runs from
+    # (cibuildwheel runs the tests from a temporary directory)
+    scp_path = reference_dir.joinpath("wav.scp")
+    scp_path.write_text(f"1-1 {wav_path.resolve()}\n")
+    return scp_path
 
 
 @pytest.fixture(scope="session")

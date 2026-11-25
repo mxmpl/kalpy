@@ -9,12 +9,22 @@ Kalpy depends on Kaldi being built as shared libraries, and the easiest way to i
 conda install -c conda-forge kalpy
 ```
 
-Kalpy is also available on pip via the `kalpy-kaldi` package, but as this is only a binding library, it relies on Kaldi shared libraries being available. The `KALDI_ROOT` environment variable must be set to locate the shared libraries and header files.  The easiest way to install the appropriately built kaldi libraries is via `conda install -c conda-forge kaldi`.
+Kalpy is also available on PyPI as `kalpy-kaldi`. The wheels for Linux (x86_64, aarch64) and macOS (x86_64, arm64) bundle Kaldi, OpenFst and OpenBLAS, so nothing else needs to be installed. To keep them small, they leave out the bindings to Kaldi's neural network, online decoding and keyword search libraries (`_kalpy.nnet`, `nnet2`, `nnet3`, `chain`, `online`, `online2`, `kws`), which the conda-forge package and source builds include:
 
 ```
-export KALDI_ROOT=/path/to/conda/enviornment
 pip install kalpy-kaldi
 ```
+
+Building FSTs (lexicons, training and decoding graphs) additionally requires [pynini](https://github.com/kylebgorman/pynini), which publishes wheels for Linux x86_64 only: use `pip install "kalpy-kaldi[fst]"` there, or `conda install -c conda-forge pynini` elsewhere.
+
+On other platforms, pip builds kalpy from source against existing Kaldi shared libraries, located with the `KALDI_ROOT` environment variable (for instance a conda environment with `conda install -c conda-forge kaldi`):
+
+```
+export KALDI_ROOT=/path/to/conda/environment
+pip install kalpy-kaldi
+```
+
+Source builds can leave out the same bindings with `pip install kalpy-kaldi --config-settings=cmake.define.KALPY_WITH_NNET=OFF`.
 
 ## Usage
 
