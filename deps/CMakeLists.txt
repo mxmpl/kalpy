@@ -71,8 +71,12 @@ if(WIN32)
     # the bindings never use (/OPT:REF), and the dynamic C runtime (/MD) like
     # Python and every extension module. The definitions are those Kaldi's
     # CMake only adds when building DLLs.
+    # LAPACK_COMPLEX_CPP: with MSVC, OpenBLAS's lapacke_config.h ignores the
+    # LAPACK_COMPLEX_STRUCTURE Kaldi defines and falls back to the C types
+    # _Fcomplex/_Dcomplex, which do not exist in C++. Kaldi only calls real
+    # LAPACK routines, so std::complex is fine.
     set(DEPS_CFLAGS "/Gy /Gw")
-    set(DEPS_CXXFLAGS "${DEPS_CFLAGS} /bigobj /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_USE_MATH_DEFINES /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS")
+    set(DEPS_CXXFLAGS "${DEPS_CFLAGS} /bigobj /DWIN32_LEAN_AND_MEAN /DNOMINMAX /D_USE_MATH_DEFINES /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS /DLAPACK_COMPLEX_CPP")
     set(DEPS_CMAKE_ARGS -G ${CMAKE_GENERATOR}
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_INSTALL_PREFIX=${PREFIX}

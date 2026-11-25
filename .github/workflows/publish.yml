@@ -27,8 +27,29 @@ jobs:
         with:
           arch: x64
 
+      # Keep the dependency build (~25 min) between runs, even failed ones:
+      # ExternalProject resumes from the last completed step. Only reused while
+      # deps/ is unchanged.
+      - name: Restore dependency build
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            C:/kb
+            C:/kaldi
+          key: deps-win-64-${{ hashFiles('deps/**') }}-${{ github.run_id }}
+          restore-keys: deps-win-64-${{ hashFiles('deps/**') }}-
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v4.2.1
+
+      - name: Save dependency build
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            C:/kb
+            C:/kaldi
+          key: deps-win-64-${{ hashFiles('deps/**') }}-${{ github.run_id }}
 
       - uses: actions/upload-artifact@v4
         with:
