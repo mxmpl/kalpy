@@ -1772,10 +1772,10 @@ void init_fstext(py::module &_m) {
       py::gil_scoped_release gil_release;
 
     bool check_no_self_loops = true;
-    AddSelfLoops(trans_model,
-                 disambig_syms_in,
-                 self_loop_scale,
-                 reorder, check_no_self_loops, fst);
+    kaldi::AddSelfLoops(trans_model,
+                        disambig_syms_in,
+                        self_loop_scale,
+                        reorder, check_no_self_loops, fst);
     },
         py::arg("fst"),
         py::arg("trans_model"),
