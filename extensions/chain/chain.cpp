@@ -165,7 +165,7 @@ void pybind_chain_training(py::module& m) {
          const Supervision& supervision, const CuMatrixBase<float>& nnet_output,
          VectorBase<float>* objf_l2_term_weight,
          CuMatrixBase<float>* nnet_output_deriv,
-         CuMatrixBase<float>* xent_output_deriv = nullptr) {
+         CuMatrixBase<float>* xent_output_deriv) {
         // Note that we have changed `CuMatrix<float>*`
         // to `CuMatrixBase<float>*` for xent_output_deriv
 

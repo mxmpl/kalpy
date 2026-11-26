@@ -347,10 +347,10 @@ void init_lm(py::module &_m) {
     [](
       std::string arpa_rxfilename,
       fst::SymbolTable* symbols,
-    std::string disambig_symbol = "#0",
-    std::string bos_symbol = "<s>",
-    std::string eos_symbol = "</s>",
-    bool ilabel_sort = true
+    std::string disambig_symbol,
+    std::string bos_symbol,
+    std::string eos_symbol,
+    bool ilabel_sort
     ){
     int64 disambig_symbol_id = 0;
 

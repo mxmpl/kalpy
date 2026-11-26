@@ -525,10 +525,10 @@ void pybind_ivector_extractor(py::module &m) {
       .def("update", [](
         PyClass &stats,
         IvectorExtractor &extractor,
-        double variance_floor_factor=0.1,
-        double gaussian_min_count=100.0,
-        int32 num_threads=1,
-        bool diagonalize=true
+        double variance_floor_factor,
+        double gaussian_min_count,
+        int32 num_threads,
+        bool diagonalize
       ){
 
       IvectorExtractorEstimationOptions update_opts;
@@ -1363,10 +1363,10 @@ void init_ivector(py::module &_m) {
       const IvectorExtractor &extractor,
       const Matrix<BaseFloat> &feats,
 
-      double acoustic_weight = 1.0,
-      double max_count = 0.0,
-      int32 num_post = 50,
-      BaseFloat min_post = 0.0
+      double acoustic_weight,
+      double max_count,
+      int32 num_post,
+      BaseFloat min_post
     ) -> Vector<double> {
       IvectorEstimationOptions opts;
       opts.acoustic_weight = acoustic_weight;
@@ -1426,8 +1426,8 @@ void init_ivector(py::module &_m) {
   m.def("ivector_normalize_length",
     [](
     Vector<BaseFloat>* ivector,
-      bool normalize = true,
-      bool scaleup = true
+      bool normalize,
+      bool scaleup
     ) {
           py::gil_scoped_release gil_release;
       BaseFloat norm = ivector->Norm(2.0);
@@ -1442,8 +1442,8 @@ void init_ivector(py::module &_m) {
   m.def("ivector_normalize_length",
     [](
     Vector<double>* ivector,
-      bool normalize = true,
-      bool scaleup = true
+      bool normalize,
+      bool scaleup
     ) {
           py::gil_scoped_release gil_release;
       double norm = ivector->Norm(2.0);
@@ -1458,7 +1458,7 @@ void init_ivector(py::module &_m) {
   m.def("ivector_subtract_mean",
     [](
         std::vector<Vector<float>*> &ivectors,
-      bool normalize = true
+      bool normalize
     ) {
           py::gil_scoped_release gil_release;
       Vector<double> sum;
@@ -1484,7 +1484,7 @@ void init_ivector(py::module &_m) {
   m.def("ivector_subtract_mean",
     [](
         std::vector<Vector<double>*> &ivectors,
-      bool normalize = true
+      bool normalize
     ) {
           py::gil_scoped_release gil_release;
       Vector<double> sum;

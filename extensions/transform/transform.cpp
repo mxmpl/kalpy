@@ -163,8 +163,8 @@ void pybind_cmvn(py::module &m) {
         [](
                const Matrix<BaseFloat> &feats,
                const Matrix<double> &cmvn_stats,
-                       bool reverse = false,
-                       bool norm_vars = false
+                       bool reverse,
+                       bool norm_vars
           ){
           py::gil_scoped_release release;
       Matrix<BaseFloat> feat_out(feats);
@@ -407,9 +407,9 @@ void pybind_fmllr_diag_gmm(py::module &m) {
                          const std::vector<int32> &ali,
                        const ConstIntegerSet<int32> &silence_set,
                        BaseFloat silence_scale,
-                         BaseFloat rand_prune = 0.0,
-                       bool distributed = false,
-                       bool two_models = false
+                         BaseFloat rand_prune,
+                       bool distributed,
+                       bool two_models
                ){
                     py::gil_scoped_release gil_release;
                     Posterior posterior;
@@ -494,11 +494,11 @@ void pybind_fmllr_diag_gmm(py::module &m) {
                          Lattice &lat,
                        const ConstIntegerSet<int32> &silence_set,
                        BaseFloat silence_scale,
-                       BaseFloat lm_scale = 1.0,
-                       BaseFloat acoustic_scale = 1.0,
-                         BaseFloat rand_prune = 0.0,
-                       bool distributed = false,
-                       bool two_models = false
+                       BaseFloat lm_scale,
+                       BaseFloat acoustic_scale,
+                         BaseFloat rand_prune,
+                       bool distributed,
+                       bool two_models
                ){
           py::gil_scoped_release gil_release;
                     if (acoustic_scale != 1.0 || lm_scale != 1.0)
@@ -942,8 +942,8 @@ void pybind_lda_estimate(py::module &m) {
                                    const std::vector<int32> &ali,
                                    const Matrix<BaseFloat> &feats,
                                    const ConstIntegerSet<int32> &silence_set,
-                                   BaseFloat rand_prune = 0.0,
-                                   BaseFloat silence_weight = 0.0){
+                                   BaseFloat rand_prune,
+                                   BaseFloat silence_weight){
           py::gil_scoped_release gil_release;
 
                Posterior post;
@@ -1144,7 +1144,7 @@ void pybind_mllt(py::module &m) {
                                    const std::vector<int32> &ali,
                                   const Matrix<BaseFloat> &mat,
                                    const ConstIntegerSet<int32> &silence_set,
-                                   BaseFloat silence_weight = 0.0){
+                                   BaseFloat silence_weight){
 
                     py::gil_scoped_release release;
                     Posterior post;
@@ -1514,9 +1514,9 @@ void init_transform(py::module &_m) {
                        const ConstIntegerSet<int32> &silence_set,
                             FmllrDiagGmmAccs *spk_stats,
                        BaseFloat silence_scale,
-                         BaseFloat rand_prune = 0.0,
-                       bool distributed = false,
-                       bool two_models = false
+                         BaseFloat rand_prune,
+                       bool distributed,
+                       bool two_models
                ){
           py::gil_scoped_release gil_release;
                Posterior pdf_post;

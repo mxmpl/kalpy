@@ -955,7 +955,7 @@ void init_feat(py::module &_m) {
     m.def("subsample_feats",
         [](
         const Matrix<BaseFloat> &feats,
-            int32 n = 1, int32 offset = 0
+            int32 n, int32 offset
         ){
           py::gil_scoped_release gil_release;
 

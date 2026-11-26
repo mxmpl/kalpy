@@ -1214,7 +1214,7 @@ void pybind_kaldi_vector(py::module& m) {
             return py::bytes(os.str());
         })
       .def("from_bytes",
-      [](Vector<double> &p, const std::string &in, bool add = false) {
+      [](Vector<double> &p, const std::string &in, bool add) {
              std::istringstream str(in);
                p.Read(str, false, add);
         },

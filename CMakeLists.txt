@@ -145,6 +145,6 @@ set_target_properties(_kalpy PROPERTIES
     DEFINE_SYMBOL "KALDI_DLL_IMPORTS"
                 "KALDI_CUMATRIX_DLL_IMPORTS"
                 "KALDI_UTIL_DLL_IMPORTS")
-endif(MSVC)
+endif()
 
 install(TARGETS _kalpy LIBRARY DESTINATION . RUNTIME DESTINATION .)

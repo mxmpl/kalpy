@@ -412,7 +412,7 @@ void pybind_posterior(py::module &m) {
                          const TransitionModel &trans_model,
                          const ConstIntegerSet<int32> &silence_set,
                          BaseFloat silence_scale,
-                         bool distributed = false){
+                         bool distributed){
                     if (distributed)
                     WeightSilencePostDistributed(trans_model, silence_set,
                                                   silence_scale, &post);
@@ -630,7 +630,7 @@ void pybind_posterior(py::module &m) {
                        const ConstIntegerSet<int32> &silence_set,
                        BaseFloat silence_scale,
                        Posterior &post,
-                       bool distributed = false){
+                       bool distributed){
           py::gil_scoped_release release;
                          if (distributed)
                          WeightSilencePostDistributed(trans_model, silence_set,
@@ -656,7 +656,7 @@ void pybind_posterior(py::module &m) {
                          const TransitionModel &trans_model,
                        const ConstIntegerSet<int32> &silence_set,
                        BaseFloat silence_scale,
-                       bool distributed = false){
+                       bool distributed){
           py::gil_scoped_release release;
                     Posterior post;
                     AlignmentToPosterior(ali, &post);
@@ -1116,9 +1116,9 @@ void init_hmm(py::module &_m) {
                       const TransitionModel &new_trans_model,
                       const ContextDependencyInterface &new_ctx_dep,
                       const std::vector<int32> &old_alignment,
-                      int32 frame_subsampling_factor = 1,
-                      bool repeat_frames = false,
-                      bool reorder = true
+                      int32 frame_subsampling_factor,
+                      bool repeat_frames,
+                      bool reorder
           ){
           py::gil_scoped_release gil_release;
           std::vector<int32> new_alignment;

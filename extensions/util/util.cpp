@@ -416,7 +416,7 @@ void init_util(py::module &_m) {
         .def(py::init<const std::string &, bool *>())
         .def("Open",
              [](PyClass* ki, const std::string& rxfilename,
-                bool read_header = false) -> std::vector<bool> {
+                bool read_header) -> std::vector<bool> {
                std::vector<bool> result(1, false);
                if (read_header) {
                  result.resize(2, false);

@@ -663,7 +663,7 @@ void pybind_decoder_faster_decoder(py::module& m) {
         &PyClass::ReachedFinal)
       .def("GetBestPath",
            [](PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
           py::gil_scoped_release gil_release;
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
@@ -731,7 +731,7 @@ void pybind_decoder_lattice_biglm_faster_decoder(py::module& m) {
           "lattice (or traceback) will end with states that are not final-states.")
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -741,7 +741,7 @@ void pybind_decoder_lattice_biglm_faster_decoder(py::module& m) {
                        py::arg("use_final_probs") = true)
       .def("GetRawLattice",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetRawLattice(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -786,7 +786,7 @@ void pybind_decoder_lattice_faster_online_decoder(py::module& m) {
                        py::arg("fst"))
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -1114,7 +1114,7 @@ void pybind_decoder_lattice_incremental_online_decoder(py::module& m) {
           py::arg("trans_model"))
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -1238,7 +1238,7 @@ void pybind_decoder_lattice_simple_decoder(py::module& m) {
           "reasonable likelihood.")
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -1252,7 +1252,7 @@ void pybind_decoder_lattice_simple_decoder(py::module& m) {
           py::arg("use_final_probs") = true)
       .def("GetRawLattice",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetRawLattice(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -1302,7 +1302,7 @@ void pybind_decoder_simple_decoder(py::module& m) {
         &PyClass::ReachedFinal)
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
              return std::make_pair(is_succeeded, ofst);
@@ -1534,7 +1534,7 @@ void pybind_lattice_faster_decoder_impl(
       py::call_guard<py::gil_scoped_release>())
       .def("GetBestPath",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
           py::gil_scoped_release release;
              Lattice ofst;
              bool is_succeeded = decoder.GetBestPath(&ofst, use_final_probs);
@@ -1555,7 +1555,7 @@ void pybind_lattice_faster_decoder_impl(
            py::arg("use_final_probs") = true)
       .def("GetRawLattice",
            [](const PyClass& decoder,
-              bool use_final_probs = true) -> std::pair<bool, Lattice> {
+              bool use_final_probs) -> std::pair<bool, Lattice> {
           py::gil_scoped_release release;
              Lattice ofst;
              bool is_succeeded = decoder.GetRawLattice(&ofst, use_final_probs);

@@ -257,16 +257,16 @@ void pybind_am_diag_gmm(py::module& m) {
           py::arg("boost"))
       .def("mle_update",
           [](PyClass& am_gmm, const AccumAmDiagGmm &gmm_accs,
-          int32 mixup = 0,
-          int32 mixdown = 0,
-          BaseFloat perturb_factor = 0.01,
-          BaseFloat power = 0.2,
-          BaseFloat min_count = 20.0,
-          BaseFloat min_gaussian_weight = 1.0e-05,
-          BaseFloat min_gaussian_occupancy = 10.0,
-          BaseFloat min_variance= 0.001,
-          BaseFloat remove_low_count_gaussians = true,
-          std::string update_flags_str = "mvwt"
+          int32 mixup,
+          int32 mixdown,
+          BaseFloat perturb_factor,
+          BaseFloat power,
+          BaseFloat min_count,
+          BaseFloat min_gaussian_weight,
+          BaseFloat min_gaussian_occupancy,
+          BaseFloat min_variance,
+          BaseFloat remove_low_count_gaussians,
+          std::string update_flags_str
           ){
         kaldi::GmmFlagsType update_flags =
             StringToGmmFlags(update_flags_str);
@@ -588,13 +588,13 @@ void pybind_diag_gmm(py::module& m) {
           py::arg("loglikes"))
       .def("mle_update",
           [](PyClass& gmm, const AccumDiagGmm &gmm_accs,
-          int32 mixup = 0,
-          BaseFloat perturb_factor = 0.01,
-          BaseFloat min_gaussian_weight = 1.0e-05,
-          BaseFloat min_gaussian_occupancy = 10.0,
-          BaseFloat min_variance= 0.001,
-          BaseFloat remove_low_count_gaussians = true,
-          std::string update_flags_str = "mvw"
+          int32 mixup,
+          BaseFloat perturb_factor,
+          BaseFloat min_gaussian_weight,
+          BaseFloat min_gaussian_occupancy,
+          BaseFloat min_variance,
+          BaseFloat remove_low_count_gaussians,
+          std::string update_flags_str
           ){
           py::gil_scoped_release gil_release;
 
@@ -625,8 +625,8 @@ void pybind_diag_gmm(py::module& m) {
         [](
           PyClass&gmm,
           const MatrixBase<BaseFloat> &feats,
-          int32 num_post = 50,
-          BaseFloat min_post = 0.0
+          int32 num_post,
+          BaseFloat min_post
         ){
           py::gil_scoped_release release;
       int32 T = feats.NumRows();
@@ -1966,7 +1966,7 @@ void init_gmm(py::module &_m) {
                     const AmDiagGmm &am_gmm,
                             const Posterior &posterior,
                             const Matrix<BaseFloat> &mat,
-                            BaseFloat rand_prune = 0.0){
+                            BaseFloat rand_prune){
 
           py::gil_scoped_release release;
               GaussPost gpost(posterior.size());
@@ -2052,12 +2052,12 @@ void init_gmm(py::module &_m) {
       VectorFst<StdArc> *decode_fst,
       const Matrix<BaseFloat> &features,
 
-    BaseFloat acoustic_scale = 1.0,
-    BaseFloat transition_scale = 1.0,
-    BaseFloat self_loop_scale = 1.0,
-  BaseFloat beam=10.0,
-  BaseFloat retry_beam=40.0,
-  bool careful=false
+    BaseFloat acoustic_scale,
+    BaseFloat transition_scale,
+    BaseFloat self_loop_scale,
+  BaseFloat beam,
+  BaseFloat retry_beam,
+  bool careful
 
       ){
           py::gil_scoped_release gil_release;
@@ -2134,12 +2134,12 @@ void init_gmm(py::module &_m) {
       VectorFst<StdArc> *decode_fst,
       const Matrix<BaseFloat> &features,
       const std::vector<std::vector<int32>> &reference_alignment,
-    BaseFloat acoustic_scale = 1.0,
-    BaseFloat transition_scale = 1.0,
-    BaseFloat self_loop_scale = 1.0,
-  BaseFloat beam=10.0,
-  BaseFloat retry_beam=40.0,
-  bool careful=false
+    BaseFloat acoustic_scale,
+    BaseFloat transition_scale,
+    BaseFloat self_loop_scale,
+  BaseFloat beam,
+  BaseFloat retry_beam,
+  bool careful
 
       ){
           py::gil_scoped_release gil_release;
@@ -2217,7 +2217,7 @@ void init_gmm(py::module &_m) {
       const std::vector<std::vector<int32> > &shared_phones,
     const std::string model_filename,
     const std::string tree_filename,
-      BaseFloat perturb_factor = 0.0){
+      BaseFloat perturb_factor){
 
     int32 dim = feats[0].NumCols();
     Vector<BaseFloat> glob_inv_var(dim);
@@ -2310,12 +2310,12 @@ void init_gmm(py::module &_m) {
             const ContextDependency &ctx_dep,
     const BuildTreeStatsType &stats,
     const std::string model_filename,
-    double var_floor = 0.01,
-    int32 mixup = 0,
-    int32 mixdown = 0,
-    BaseFloat perturb_factor = 0.01,
-    BaseFloat power = 0.2,
-    BaseFloat min_count = 20.0){
+    double var_floor,
+    int32 mixup,
+    int32 mixdown,
+    BaseFloat perturb_factor,
+    BaseFloat power,
+    BaseFloat min_count){
 
     bool binary = true;
     const EventMap &to_pdf_map = ctx_dep.ToPdfMap();  // not owned here.
@@ -2417,12 +2417,12 @@ void init_gmm(py::module &_m) {
   const TransitionModel &old_trans_model,
   const ContextDependency &old_tree,
     const std::string model_filename,
-    double var_floor = 0.01,
-    int32 mixup = 0,
-    int32 mixdown = 0,
-    BaseFloat perturb_factor = 0.01,
-    BaseFloat power = 0.2,
-    BaseFloat min_count = 20.0){
+    double var_floor,
+    int32 mixup,
+    int32 mixdown,
+    BaseFloat perturb_factor,
+    BaseFloat power,
+    BaseFloat min_count){
 
     bool binary = true;
     const EventMap &to_pdf_map = ctx_dep.ToPdfMap();  // not owned here.
@@ -2548,7 +2548,7 @@ void init_gmm(py::module &_m) {
         [](const Posterior &pdf_post,
                          const AmDiagGmm &am_gmm,
                          const Matrix<BaseFloat> &feats,
-                         BaseFloat rand_prune = 0.0){
+                         BaseFloat rand_prune){
 
           py::gil_scoped_release release;
           GaussPost gpost(pdf_post.size());

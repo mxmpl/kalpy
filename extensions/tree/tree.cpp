@@ -1173,14 +1173,14 @@ void init_tree(py::module &_m) {
                   BuildTreeStatsType stats,
                       std::string roots_filename,
                       std::string tree_out_filename,
-                      int32 num_iters_refine = 0,
-                      int32 P = 1,
-                      int32 N = 3,
+                      int32 num_iters_refine,
+                      int32 P,
+                      int32 N,
 
-                  BaseFloat thresh = 300.0,
-                  BaseFloat cluster_thresh = -1.0,
-                  int32 max_leaves = 0,
-                  bool round_num_leaves = true
+                  BaseFloat thresh,
+                  BaseFloat cluster_thresh,
+                  int32 max_leaves,
+                  bool round_num_leaves
           ){
             bool binary = true;
             std::vector<std::vector<int32> > phone_sets;

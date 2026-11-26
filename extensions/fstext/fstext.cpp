@@ -223,9 +223,9 @@ void pybind_table_compose(py::module &m){
 
     m.def("fst_table_compose",
     [](const Fst<Arc> &fst1, const Fst<Arc> &fst2,
-    const std::string match_side = "left",
-    const std::string compose_filter = "sequence",
-    TableComposeCache<Fst<Arc> > *cache =  nullptr
+    const std::string match_side,
+    const std::string compose_filter,
+    TableComposeCache<Fst<Arc> > *cache
     ){
       TableComposeOptions opts;
 
@@ -1766,8 +1766,8 @@ void init_fstext(py::module &_m) {
       VectorFst<StdArc> *fst,
       const TransitionModel &trans_model,
       std::vector<int32> disambig_syms_in,
-    BaseFloat self_loop_scale = 1.0,
-    bool reorder = true
+    BaseFloat self_loop_scale,
+    bool reorder
     ){
       py::gil_scoped_release gil_release;
 
@@ -1787,7 +1787,7 @@ void init_fstext(py::module &_m) {
     [](
       VectorFst<StdArc> *fst,
       int32 subseq_sym,
-      float delta = kDelta
+      float delta
     ){
 
       py::gil_scoped_release gil_release;
@@ -1805,9 +1805,9 @@ void init_fstext(py::module &_m) {
     [](
       VectorFst<StdArc> *fst,
       std::vector<int32> disambig_in,
-      int32 context_width = 3,
-      int32 central_position = 1,
-    int32 nonterm_phones_offset = -1
+      int32 context_width,
+      int32 central_position,
+    int32 nonterm_phones_offset
     ){
       py::gil_scoped_release gil_release;
 
@@ -1853,9 +1853,9 @@ void init_fstext(py::module &_m) {
     m.def("fst_determinize_star",
     [](
       VectorFst<StdArc> *fst,
-      float delta = kDelta,
-      int max_states = -1,
-      bool use_log = false
+      float delta,
+      int max_states,
+      bool use_log
     ){
       py::gil_scoped_release gil_release;
       bool debug_location = false;
@@ -1878,8 +1878,8 @@ void init_fstext(py::module &_m) {
     m.def("fst_is_stochastic",
     [](
       Fst<StdArc> *fst,
-    float delta = 0.01,
-    bool test_in_log = true
+    float delta,
+    bool test_in_log
     ){
     bool ans;
     StdArc::Weight min, max;
@@ -1896,8 +1896,8 @@ void init_fstext(py::module &_m) {
     [](
       fst::SymbolTable *phones_symtab,
       std::vector<std::vector<kaldi::int32> > ilabel_info,
-        std::string phone_separator = "/",
-        std::string initial_disambig = "#-1"
+        std::string phone_separator,
+        std::string initial_disambig
     ){
       py::gil_scoped_release gil_release;
 
@@ -1917,7 +1917,7 @@ void init_fstext(py::module &_m) {
     m.def("fst_minimize_encoded",
     [](
       VectorFst<StdArc> *fst,
-        float delta = kDelta
+        float delta
     ){
       py::gil_scoped_release gil_release;
 
@@ -1949,7 +1949,7 @@ void init_fstext(py::module &_m) {
     m.def("fst_push_special",
       [](
             VectorFst<StdArc> *fst,
-            BaseFloat delta = kDelta
+            BaseFloat delta
       ){
       py::gil_scoped_release gil_release;
 
@@ -1961,7 +1961,7 @@ void init_fstext(py::module &_m) {
     m.def("fst_arc_sort",
     [](
       VectorFst<StdArc> *fst,
-        std::string sort_type = "ilabel"
+        std::string sort_type
     ){
       py::gil_scoped_release gil_release;
 
@@ -1993,8 +1993,8 @@ void init_fstext(py::module &_m) {
     m.def("fst_rm_eps_local",
     [](
       VectorFst<StdArc> *fst,
-    bool use_log = false,
-    bool stochastic_in_log = true
+    bool use_log,
+    bool stochastic_in_log
     ){
       py::gil_scoped_release gil_release;
 
@@ -2019,9 +2019,9 @@ void init_fstext(py::module &_m) {
     [](
       VectorFst<StdArc> *fst,
       std::vector<int32> disambig_in,
-    bool apply_to_output = false,
-    bool remove_arcs = false,
-    float penalty = -std::numeric_limits<BaseFloat>::infinity()
+    bool apply_to_output,
+    bool remove_arcs,
+    float penalty
     ){
       py::gil_scoped_release gil_release;
 

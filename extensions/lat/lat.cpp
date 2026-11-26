@@ -1222,8 +1222,8 @@ void init_lat(py::module &_m) {
             [](
             const std::vector<int32> &ali,
                            const std::vector<int32> &words,
-                           BaseFloat lm_cost = 0.0,
-                           BaseFloat ac_cost = 0.0
+                           BaseFloat lm_cost,
+                           BaseFloat ac_cost
             ) -> CompactLattice {
                   Lattice lat_out;
                   CompactLattice clat;
@@ -1271,8 +1271,8 @@ void init_lat(py::module &_m) {
     m.def("lattice_best_path",
             [](
             CompactLattice &clat,
-            BaseFloat lm_scale = 1.0,
-            BaseFloat acoustic_scale = 1.0
+            BaseFloat lm_scale,
+            BaseFloat acoustic_scale
             ) {
 
       fst::ScaleLattice(fst::LatticeScale(lm_scale, acoustic_scale), &clat);
@@ -1291,9 +1291,9 @@ void init_lat(py::module &_m) {
     m.def("lattice_to_post",
             [](
             CompactLattice &clat,
-            BaseFloat beam = 10.0,
-            BaseFloat acoustic_scale = 1.0,
-            bool minimize = false
+            BaseFloat beam,
+            BaseFloat acoustic_scale,
+            bool minimize
             ) {
                   fst::DeterminizeLatticePrunedOptions opts;
                   opts.max_mem = 50000000;
@@ -1340,8 +1340,8 @@ void init_lat(py::module &_m) {
                   VectorFst<StdArc> *lm_to_subtract_fst,
                   VectorFst<StdArc> *lm_to_add_fst,
             const ComposeLatticePrunedOptions &compose_opts,
-                  BaseFloat lm_scale = 1.0,
-             BaseFloat acoustic_scale = 1.0
+                  BaseFloat lm_scale,
+             BaseFloat acoustic_scale
             ) {
                   if (lm_to_subtract_fst->Properties(fst::kAcceptor, true) == 0) {
                   // If it's not already an acceptor, project on the output, i.e. copy olabels
@@ -1415,8 +1415,8 @@ void init_lat(py::module &_m) {
                   VectorFst<StdArc> *lm_to_subtract_fst,
                   ConstArpaLm &const_arpa,
             const ComposeLatticePrunedOptions &compose_opts,
-                  BaseFloat lm_scale = 1.0,
-             BaseFloat acoustic_scale = 1.0
+                  BaseFloat lm_scale,
+             BaseFloat acoustic_scale
             ) {
                   if (lm_to_subtract_fst->Properties(fst::kAcceptor, true) == 0) {
                   // If it's not already an acceptor, project on the output, i.e. copy olabels
@@ -1471,7 +1471,7 @@ void init_lat(py::module &_m) {
     m.def("load_fst_for_subtract",
             [](
                   VectorFst<StdArc> *lm_to_subtract_fst,
-                  BaseFloat lm_scale = 1.0
+                  BaseFloat lm_scale
             ) {
                   if (lm_to_subtract_fst->Properties(fst::kAcceptor, true) == 0) {
                   // If it's not already an acceptor, project on the output, i.e. copy olabels
